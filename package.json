@@ -1,5 +1,5 @@
 {
-  "name": "path",
+  "name": "cool-path",
   "version": "0.1.0",
   "description": "Path Matcher/Getter/Setter for Object/Array",
   "main": "lib/index.js",
