@@ -32,47 +32,47 @@ npm install --save o-path
 
 - Methods/Properties
 
-  - `concat()`
+  - `concat(...args: Array<string | number>)`
 
-  - `slice()`
+  - `slice(start?: number, end?: number)`
 
-  - `push()`
+  - `push(item: string | number)`
 
   - `pop()`
 
-  - `splice()`
+  - `splice(start: number,deleteCount?: number,...items: Array<string | number>)`
 
-  - `forEach()`
+  - `forEach(callback: (key: string | number)`
 
-  - `map()`
+  - `map(callback: (key: string | number)`
 
-  - `reduce()`
+  - `reduce<T>(callback: (buf: T, item: string | number, index: number) => T, initial: T) : T`
 
   - `parent()`
 
-  - `includes()`
+  - `includes(pattern: Pattern)`
 
-  - `transform()`
+  - `transform<T>(regexp: string | RegExp,callback: (...args: string[]) => T) : T`
 
-  - `match()`
+  - `match(pattern: Pattern)`
 
-  - `getIn()`
+  - `getIn(source?: any)`
 
-  - `setIn()`
+  - `setIn(source?: any, value?: any)`
 
-  - `deleteIn()`
+  - `deleteIn(source?: any)`
 
 - Static Methods
 
-  - `getPath()`
+  - `getPath(pattern: Pattern)`
 
-  - `getIn()`
+  - `getIn(source: any, pattern: Pattern)`
 
-  - `setIn()`
+  - `setIn(source: any, pattern: Pattern, value: any)`
 
-  - `deleteIn()`
+  - `deleteIn(source: any, pattern: Pattern)`
 
-  - `transform()`
+  - `transform<T>(pattern: Pattern,regexp: string | RegExp,callback: (...args: string[]) => T):T`
 
 ### Getter/Setter Destructor Syntax
 
