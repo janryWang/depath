@@ -62,7 +62,7 @@ npm install --save o-path
 
   - `deleteIn()`
 
-### Static Methods
+- Static Methods
 
   - `getPath()`
 
