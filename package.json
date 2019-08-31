@@ -1,0 +1,57 @@
+{
+  "name": "o-path",
+  "version": "0.1.0",
+  "description": "Path Matcher/Getter/Setter for Object/Array",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": " cross-env NODE_ENV=test jest",
+    "build": "tsc --declaration",
+    "precommit": "lint-staged && npm run test && npm run build && git add -A"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janryWang/react-propers.git"
+  },
+  "author": "janryWang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janryWang/react-propers/issues"
+  },
+  "homepage": "https://github.com/janryWang/react-propers#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.46",
+    "@babel/core": "^7.0.0-beta.46",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.46",
+    "@babel/preset-env": "^7.0.0-beta.46",
+    "@babel/preset-react": "^7.0.0-beta.46",
+    "@babel/register": "^7.0.0-beta.46",
+    "ava": "^1.0.0-beta.4",
+    "babel-jest": "^24.9.0",
+    "cross-env": "^5.1.4",
+    "husky": "^0.14.3",
+    "jest": "^24.9.0",
+    "jest-codemods": "^0.20.0",
+    "lint-staged": "^4.3.0",
+    "prettier": "^1.11.x",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.6.2"
+  },
+  "lint-staged": {
+    "src/*.js": [
+      "prettier --write --tab-width 4 --no-semi",
+      "git add"
+    ],
+    "dist/*.js": [
+      "prettier --write --tab-width 4 --no-semi",
+      "git add"
+    ],
+    "test.js": [
+      "prettier --write --tab-width 4 --no-semi",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "fast-memoize": "^2.5.1",
+    "lru-memoize": "^1.0.2"
+  }
+}
