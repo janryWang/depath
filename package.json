@@ -1,5 +1,5 @@
 {
-  "name": "o-path",
+  "name": "path",
   "version": "0.1.0",
   "description": "Path Matcher/Getter/Setter for Object/Array",
   "main": "lib/index.js",
@@ -8,24 +8,19 @@
     "build": "tsc --declaration",
     "precommit": "lint-staged && npm run test && npm run build && git add -A"
   },
+  "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/janryWang/react-propers.git"
+    "url": "git+https://github.com/janryWang/cool-path.git"
   },
   "author": "janryWang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/janryWang/react-propers/issues"
+    "url": "https://github.com/janryWang/cool-path/issues"
   },
-  "homepage": "https://github.com/janryWang/react-propers#readme",
+  "homepage": "https://github.com/janryWang/cool-path#readme",
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.46",
-    "@babel/core": "^7.0.0-beta.46",
-    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.46",
-    "@babel/preset-env": "^7.0.0-beta.46",
-    "@babel/preset-react": "^7.0.0-beta.46",
-    "@babel/register": "^7.0.0-beta.46",
-    "ava": "^1.0.0-beta.4",
+    "@types/jest": "^24.0.18",
     "babel-jest": "^24.9.0",
     "cross-env": "^5.1.4",
     "husky": "^0.14.3",
@@ -38,20 +33,16 @@
   },
   "lint-staged": {
     "src/*.js": [
-      "prettier --write --tab-width 4 --no-semi",
+      "prettier --write --tab-width 2 --no-semi",
       "git add"
     ],
     "dist/*.js": [
-      "prettier --write --tab-width 4 --no-semi",
+      "prettier --write --tab-width 2 --no-semi",
       "git add"
     ],
     "test.js": [
-      "prettier --write --tab-width 4 --no-semi",
+      "prettier --write --tab-width 2 --no-semi",
       "git add"
     ]
-  },
-  "dependencies": {
-    "fast-memoize": "^2.5.1",
-    "lru-memoize": "^1.0.2"
   }
 }

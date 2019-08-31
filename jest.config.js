@@ -9,7 +9,8 @@ module.exports = {
   globals: {
     'ts-jest': {
       babelConfig: true,
-      tsConfig: 'tsconfig.json'
+      diagnostics: true,
+      tsConfig: './tsconfig.json'
     }
   },
   //watchPlugins: ['jest-watch-lerna-packages'],

@@ -6,6 +6,7 @@
     "jsx": "react",
     "module": "commonjs",
     "target": "es5",
+    "lib": ["es2015", "es2017", "dom"],
     "allowJs": false,
     "noUnusedLocals": true,
     "removeComments": true,
