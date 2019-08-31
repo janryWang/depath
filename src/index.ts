@@ -413,7 +413,7 @@ export class Path {
   transform = <T>(
     regexp: string | RegExp,
     callback: (...args: string[]) => T
-  )=> {
+  ): T | string => {
     if (!isFn(callback)) return ''
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be transformed`)
