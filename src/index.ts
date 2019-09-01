@@ -290,13 +290,7 @@ export class Path {
       return {
         entire: pattern.join('.'),
         segments: pattern.reduce((buf, key) => {
-          if (isStr(key)) key = key.replace(/\s*/g, '')
-          try {
-            const { segments, isMatchPattern } = this.parse(key)
-            return buf.concat(!isMatchPattern ? segments : key)
-          } catch (e) {
-            return buf.concat(key)
-          }
+          return buf.concat(this.parseString(key))
         }, []),
         isWildMatchPattern: false,
         isMatchPattern: false
@@ -309,6 +303,19 @@ export class Path {
         isMatchPattern: false
       }
     }
+  }
+
+  private parseString(source : any){
+    if(isStr(source)){
+      source = source.replace(/\s*/g,'')
+      try {
+        const { segments, isMatchPattern } = this.parse(source)
+        return !isMatchPattern ? segments : source
+      } catch (e) {
+        return source
+      }
+    }
+    return source
   }
 
   concat = (...args: Array<string | number>) => {
@@ -329,6 +336,7 @@ export class Path {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be push`)
     }
+    item = this.parseString(item)
     this.segments.push(item)
     this.entire = this.segments.join('.')
     return this
@@ -349,6 +357,9 @@ export class Path {
   ) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be splice`)
+    }
+    if(deleteCount === 0){
+      items = items.map(item=>this.parseString(item))
     }
     this.segments.splice(start, deleteCount, ...items)
     this.entire = this.segments.join('.')
