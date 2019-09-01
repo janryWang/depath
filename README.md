@@ -76,6 +76,70 @@ npm install --save cool-path
 
 ### Getter/Setter Destructor Syntax
 
+- Object Pattern
+
+  ```javascript
+  Path.setIn({},'a.b.c.{aaa,bbb}',{aaa:123,bbb:321})
+  ==>
+  {a:{b:{c:{aaa:123,bbb:321}}}}
+  Path.getIn({a:{b:{c:{aaa:123,bbb:321}}}},'a.b.c.{aaa,bbb}')
+  ==>
+  {aaa:123,bbb:321}
+
+  Path.setIn({a:{b:{c:{kkk:'ddd'}}}},'a.b.c.{aaa,bbb}',{aaa:123,bbb:321})
+  ==>
+  {a:{b:{c:{aaa:123,bbb:321,kkk:'ddd'}}}}
+  Path.getIn({a:{b:{c:{aaa:123,bbb:321,kkk:'ddd'}}}},'a.b.c.{aaa,bbb}')
+  ==>
+  {aaa:123,bbb:321}
+
+  Path.setIn({a:{b:{c:{kkk:'ddd'}}}},'a.b.c.{aaa:ooo,bbb}',{aaa:123,bbb:321})
+  ==>
+  {a:{b:{c:{ooo:123,bbb:321,kkk:'ddd'}}}}
+  Path.getIn({a:{b:{c:{ooo:123,bbb:321,kkk:'ddd'}}}},'a.b.c.{aaa:ooo,bbb}')
+  ==>
+  {aaa:123,bbb:321}
+  ```
+
+
+- Array Pattern
+
+  ```javascript
+  Path.setIn({},'a.b.c.[aaa,bbb]',[123,321])
+  ==>
+  {a:{b:{c:{aaa:123,bbb:321}}}}
+  Path.getIn({a:{b:{c:{aaa:123,bbb:321}}}},'a.b.c.[aaa,bbb]')
+  ==>
+  [123,321]
+  
+  Path.setIn({a:{b:{c:{kkk:'ddd'}}}},'a.b.c.[aaa,bbb]',[123,321])
+  ==>
+  {a:{b:{c:{aaa:123,bbb:321,kkk:'ddd'}}}}
+  Path.getIn({a:{b:{c:{aaa:123,bbb:321,kkk:'ddd'}}}},'a.b.c.[aaa,bbb]')
+  ==>
+  [123,321]
+  ```
+
+- Nested Array and Object Pattern
+
+  ```javascript
+  Path.setIn({},'a.b.c.[{ddd,kkk:mmm},bbb]',[{ddd:123,kkk:'hhhh'},321])
+  ==>
+  {a:{b:{c:{ddd:123,bbb:321,mmm:'hhh'}}}}
+  Path.getIn({a:{b:{c:{ddd:123,bbb:321,mmm:'hhh'}}}},'a.b.c.[{ddd,kkk:mmm},bbb]')
+  ==>
+  [{ddd:123,kkk:'hhh'},321]
+  
+  Path.setIn({a:{b:{c:{kkk:'ddd'}}}},'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}',{aaa:123,bbb:[123,321]})
+  ==>
+  {a:{b:{c:{ooo:123,ccc:123,ddd:321,kkk:'ddd'}}}}
+  Path.getIn({a:{b:{c:{ooo:123,ccc:123,ddd:321,kkk:'ddd'}}}},'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}')
+  ==>
+  {aaa:123,bbb:[123,321]}
+  ```
+
+  
+
 
 ### Path Match Pattern Syntax
 

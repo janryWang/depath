@@ -108,3 +108,115 @@ test('destruct setIn', () => {
     aa: { bb: { ddd: { aa: 123, bb: 444 } } }
   })
 })
+
+test('setIn with a.b.c.{aaa,bbb}', () => {
+  expect(Path.setIn({}, 'a.b.c.{aaa,bbb}', { aaa: 123, bbb: 321 })).toEqual({
+    a: { b: { c: { aaa: 123, bbb: 321 } } }
+  })
+})
+
+test('getIn with a.b.c.{aaa,bbb}', () => {
+  expect(
+    Path.getIn({ a: { b: { c: { aaa: 123, bbb: 321 } } } }, 'a.b.c.{aaa,bbb}')
+  ).toEqual({ aaa: 123, bbb: 321 })
+})
+
+test('setIn with a.b.c.{aaa,bbb} source has extra property', () => {
+  expect(
+    Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.{aaa,bbb}', {
+      aaa: 123,
+      bbb: 321
+    })
+  ).toEqual({ a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } })
+})
+
+test('getIn with a.b.c.{aaa,bbb} source has extra property', () => {
+  expect(
+    Path.getIn(
+      { a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } },
+      'a.b.c.{aaa,bbb}'
+    )
+  ).toEqual({ aaa: 123, bbb: 321 })
+})
+
+test('setIn with a.b.c.{aaa:ooo,bbb}', () => {
+  expect(
+    Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.{aaa:ooo,bbb}', {
+      aaa: 123,
+      bbb: 321
+    })
+  ).toEqual({ a: { b: { c: { ooo: 123, bbb: 321, kkk: 'ddd' } } } })
+})
+
+test('getIn with a.b.c.{aaa:ooo,bbb}', () => {
+  expect(
+    Path.getIn(
+      { a: { b: { c: { ooo: 123, bbb: 321, kkk: 'ddd' } } } },
+      'a.b.c.{aaa:ooo,bbb}'
+    )
+  ).toEqual({ aaa: 123, bbb: 321 })
+})
+
+test('setIn with a.b.c.[aaa,bbb]', () => {
+  expect(Path.setIn({}, 'a.b.c.[aaa,bbb]', [123, 321])).toEqual({
+    a: { b: { c: { aaa: 123, bbb: 321 } } }
+  })
+})
+
+test('getIn with a.b.c.[aaa,bbb]', () => {
+  expect(
+    Path.getIn({ a: { b: { c: { aaa: 123, bbb: 321 } } } }, 'a.b.c.[aaa,bbb]')
+  ).toEqual([123, 321])
+})
+
+test('setIn with a.b.c.[aaa,bbb] source has extra property', () => {
+  expect(
+    Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.[aaa,bbb]', [
+      123,
+      321
+    ])
+  ).toEqual({ a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } })
+})
+
+test('getIn with a.b.c.[aaa,bbb] source has extra property', () => {
+  expect(
+    Path.getIn(
+      { a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } },
+      'a.b.c.[aaa,bbb]'
+    )
+  ).toEqual([123, 321])
+})
+
+test('setIn with a.b.c.[{ddd,kkk:mmm},bbb]', () => {
+  expect(
+    Path.setIn({}, 'a.b.c.[{ddd,kkk:mmm},bbb]', [{ ddd: 123, kkk: 'hhh' }, 321])
+  ).toEqual({ a: { b: { c: { ddd: 123, bbb: 321, mmm: 'hhh' } } } })
+})
+
+test('getIn with a.b.c.[{ddd,kkk:mmm},bbb]', () => {
+  expect(
+    Path.getIn(
+      { a: { b: { c: { ddd: 123, bbb: 321, mmm: 'hhh' } } } },
+      'a.b.c.[{ddd,kkk:mmm},bbb]'
+    )
+  ).toEqual([{ ddd: 123, kkk: 'hhh' }, 321])
+})
+
+test('setIn with a.b.c.{aaa:ooo,bbb:[ccc,ddd]}', () => {
+  expect(
+    Path.setIn(
+      { a: { b: { c: { kkk: 'ddd' } } } },
+      'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}',
+      { aaa: 123, bbb: [123, 321] }
+    )
+  ).toEqual({ a: { b: { c: { ooo: 123, ccc: 123, ddd: 321, kkk: 'ddd' } } } })
+})
+
+test('getIn with a.b.c.{aaa:ooo,bbb:[ccc,ddd]}', () => {
+  expect(
+    Path.getIn(
+      { a: { b: { c: { ooo: 123, ccc: 123, ddd: 321, kkk: 'ddd' } } } },
+      'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}'
+    )
+  ).toEqual({ aaa: 123, bbb: [123, 321] })
+})
