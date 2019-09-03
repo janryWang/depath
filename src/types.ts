@@ -1,14 +1,20 @@
-
+import { Path } from './index'
 interface INode {
   type?: string
   after?: Node
 }
 
-export type Node = IdentifierNode |
-  WildcardOperatorNode | GroupExpressionNode |
-  RangeExpressionNode | DestructorExpressionNode |
-  ObjectPatternNode | ArrayPatternNode |
-  DotOperatorNode | ExpandOperatorNode | INode
+export type Node =
+  | IdentifierNode
+  | WildcardOperatorNode
+  | GroupExpressionNode
+  | RangeExpressionNode
+  | DestructorExpressionNode
+  | ObjectPatternNode
+  | ArrayPatternNode
+  | DotOperatorNode
+  | ExpandOperatorNode
+  | INode
 
 export type IdentifierNode = {
   type: 'Identifier'
@@ -36,19 +42,19 @@ export type ExpandOperatorNode = {
 
 export type GroupExpressionNode = {
   type: 'GroupExpression'
-  value: Node[],
+  value: Node[]
   isExclude?: boolean
 } & INode
 
 export type RangeExpressionNode = {
   type: 'RangeExpression'
-  start?: IdentifierNode,
+  start?: IdentifierNode
   end?: IdentifierNode
 } & INode
 
 export type DestructorExpressionNode = {
   type: 'DestructorExpression'
-  value?: ObjectPatternNode | ArrayPatternNode,
+  value?: ObjectPatternNode | ArrayPatternNode
   source?: string
 } & INode
 
@@ -59,7 +65,7 @@ export type ObjectPatternNode = {
 
 export type ObjectPatternPropertyNode = {
   type: 'ObjectPatternProperty'
-  key: IdentifierNode,
+  key: IdentifierNode
   value?: ObjectPatternNode[] | ArrayPatternNode[] | IdentifierNode
 } & INode
 
@@ -69,15 +75,15 @@ export type ArrayPatternNode = {
 } & INode
 
 export type DestrcutorRule = {
-  key?: string | number,
+  key?: string | number
   path?: Array<number | string>
 }
 
+export type Pattern = string | number | Path | Segments
+
 export type DestrcutorRules = DestrcutorRule[]
 
-
 export type Segments = Array<string | number>
-
 
 export const isType = <T>(type: string) => (obj: any): obj is T => {
   return obj && obj.type === type
@@ -85,11 +91,15 @@ export const isType = <T>(type: string) => (obj: any): obj is T => {
 
 export const isIdentifier = isType<IdentifierNode>('Identifier')
 
-export const isIgnoreExpression = isType<IgnoreExpressionNode>('IgnoreExpression')
+export const isIgnoreExpression = isType<IgnoreExpressionNode>(
+  'IgnoreExpression'
+)
 
 export const isDotOperator = isType<DotOperatorNode>('DotOperator')
 
-export const isWildcardOperator = isType<WildcardOperatorNode>('WildcardOperator')
+export const isWildcardOperator = isType<WildcardOperatorNode>(
+  'WildcardOperator'
+)
 
 export const isExpandOperator = isType<ExpandOperatorNode>('ExpandOperator')
 
@@ -97,11 +107,14 @@ export const isGroupExpression = isType<GroupExpressionNode>('GroupExpression')
 
 export const isRangeExpression = isType<RangeExpressionNode>('RangeExpression')
 
-export const isDestructorExpression = isType<DestructorExpressionNode>('DestructorExpression')
+export const isDestructorExpression = isType<DestructorExpressionNode>(
+  'DestructorExpression'
+)
 
 export const isObjectPattern = isType<ObjectPatternNode>('ObjectPattern')
 
-export const isObjectPatternProperty = isType<ObjectPatternPropertyNode>('ObjectPatternProperty')
+export const isObjectPatternProperty = isType<ObjectPatternPropertyNode>(
+  'ObjectPatternProperty'
+)
 
 export const isArrayPattern = isType<ArrayPatternNode>('ArrayPattern')
-

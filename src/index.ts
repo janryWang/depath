@@ -9,6 +9,7 @@ import {
 import {
   Segments,
   Node,
+  Pattern,
   isIdentifier,
   isExpandOperator,
   isWildcardOperator,
@@ -18,6 +19,7 @@ import {
   isDotOperator,
   isDestructorExpression
 } from './types'
+export * from './types'
 import { LRUMap } from './lru'
 const pathCache = new LRUMap(1000)
 
@@ -208,8 +210,6 @@ const deleteIn = (segments: Segments, source: any) => {
     }
   }
 }
-
-type Pattern = string | number | Path | Segments
 
 export class Path {
   public entire: string
