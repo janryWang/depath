@@ -496,6 +496,10 @@ export class Path {
     return Path.getPath(pattern).transform(regexp, callback)
   }
 
+  static parse(path: Pattern = ''){
+    return Path.getPath(path)
+  }
+
   static getPath(path: Pattern = '') {
     if (path instanceof Path) {
       const found = pathCache.get(path.entire)
@@ -533,3 +537,6 @@ export class Path {
     return path.deleteIn(source)
   }
 }
+
+
+export default Path

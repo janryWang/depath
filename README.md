@@ -64,7 +64,7 @@ npm install --save cool-path
 
 - Static Methods
 
-  - `getPath(pattern: Pattern)`
+  - `parse(pattern: Pattern)`
 
   - `getIn(source: any, pattern: Pattern)`
 
