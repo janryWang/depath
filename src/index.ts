@@ -492,15 +492,15 @@ export class Path {
     pattern: Pattern,
     regexp: string | RegExp,
     callback: (...args: string[]) => T
-  ): T {
+  ): any {
     return Path.getPath(pattern).transform(regexp, callback)
   }
 
-  static parse(path: Pattern = ''){
+  static parse(path: Pattern = '') : Path{
     return Path.getPath(path)
   }
 
-  static getPath(path: Pattern = '') {
+  static getPath(path: Pattern = ''): Path {
     if (path instanceof Path) {
       const found = pathCache.get(path.entire)
       if (found) {
