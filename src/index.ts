@@ -271,7 +271,7 @@ export class Path {
       if (!parser.isMatchPattern) {
         const segments = parser.data.segments
         return {
-          entire: pattern,
+          entire: segments.join('.'),
           segments,
           tree,
           isWildMatchPattern: false,
