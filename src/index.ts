@@ -218,7 +218,7 @@ const deleteIn = (segments: Segments, source: any) => {
 
 const existIn = (segments: Segments, source: any, start: number | Path) => {
   if (start instanceof Path) {
-    start = start.length - 1
+    start = start.length
   }
   for (let i = start; i < segments.length; i++) {
     let index = segments[i]
