@@ -4,7 +4,8 @@ import {
   getDestructor,
   getInByDestructor,
   setInByDestructor,
-  deleteInByDestructor
+  deleteInByDestructor,
+  existInByDestructor
 } from './destructor'
 import {
   Segments,
@@ -144,6 +145,7 @@ const getIn = (segments: Segments, source: any) => {
         }
         break
       }
+      if (source === undefined) return
       source = source[index]
     } else {
       source = getInByDestructor(source, rules, { setIn, getIn })
@@ -158,6 +160,7 @@ const setIn = (segments: Segments, source: any, value: any) => {
     const index = segments[i]
     const rules = getDestructor(index as string)
     if (!rules) {
+      if (source === undefined) return
       if (!isObj(source[index])) {
         if (source[index] === undefined && value === undefined) {
           return
@@ -195,6 +198,8 @@ const deleteIn = (segments: Segments, source: any) => {
         return
       }
 
+      if (source === undefined) return
+
       source = source[index]
 
       if (!isObj(source)) {
@@ -207,6 +212,39 @@ const deleteIn = (segments: Segments, source: any) => {
         deleteIn
       })
       break
+    }
+  }
+}
+
+const existIn = (segments: Segments, source: any, start: number | Path) => {
+  if (start instanceof Path) {
+    start = start.length - 1
+  }
+  for (let i = start; i < segments.length; i++) {
+    let index = segments[i]
+    const rules = getDestructor(index as string)
+    if (!rules) {
+      if (i === segments.length - 1) {
+        if (index in source) {
+          return true
+        }
+        return false
+      }
+
+      if (source === undefined) return false
+
+      source = source[index]
+
+      if (!isObj(source)) {
+        return false
+      }
+    } else {
+      return existInByDestructor(source, rules, start, {
+        setIn,
+        getIn,
+        deleteIn,
+        existIn
+      })
     }
   }
 }
@@ -305,9 +343,9 @@ export class Path {
     }
   }
 
-  private parseString(source : any){
-    if(isStr(source)){
-      source = source.replace(/\s*/g,'')
+  private parseString(source: any) {
+    if (isStr(source)) {
+      source = source.replace(/\s*/g, '')
       try {
         const { segments, isMatchPattern } = this.parse(source)
         return !isMatchPattern ? segments : source
@@ -358,8 +396,8 @@ export class Path {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be splice`)
     }
-    if(deleteCount === 0){
-      items = items.map(item=>this.parseString(item))
+    if (deleteCount === 0) {
+      items = items.map(item => this.parseString(item))
     }
     this.segments.splice(start, deleteCount, ...items)
     this.entire = this.segments.join('.')
@@ -465,6 +503,10 @@ export class Path {
     return cacheWith(true)
   }
 
+  existIn = (source?: any, start: number | Path = 0) => {
+    return existIn(this.segments, source, start)
+  }
+
   getIn = (source?: any) => {
     return getIn(this.segments, source)
   }
@@ -496,7 +538,7 @@ export class Path {
     return Path.getPath(pattern).transform(regexp, callback)
   }
 
-  static parse(path: Pattern = '') : Path{
+  static parse(path: Pattern = ''): Path {
     return Path.getPath(path)
   }
 
@@ -536,7 +578,11 @@ export class Path {
     const path = Path.getPath(pattern)
     return path.deleteIn(source)
   }
-}
 
+  static existIn = (source: any, pattern: Pattern, start?: number | Path) => {
+    const path = Path.getPath(pattern)
+    return path.existIn(source, start)
+  }
+}
 
 export default Path

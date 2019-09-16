@@ -220,3 +220,21 @@ test('getIn with a.b.c.{aaa:ooo,bbb:[ccc,ddd]}', () => {
     )
   ).toEqual({ aaa: 123, bbb: [123, 321] })
 })
+
+test('existIn with a.b.c', () => {
+  expect(Path.existIn({ a: { b: { c: 123123 } } }, 'a.b.c')).toEqual(true)
+  expect(Path.existIn({ a: { b: { c: 123123 } } }, 'a.b.c.d')).toEqual(false)
+  expect(Path.existIn({ a: 123 }, 'a.b.c.d')).toEqual(false)
+  expect(
+    Path.existIn(
+      { a: { b: { c: { ooo: 123, ccc: 123, ddd: 321, kkk: 'ddd' } } } },
+      'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}'
+    )
+  ).toEqual(true)
+  expect(
+    Path.existIn(
+      { a: { b: { c: { ooo: 123, ccc: 123, kkk: 'ddd' } } } },
+      'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}'
+    )
+  ).toEqual(false)
+})

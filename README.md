@@ -62,6 +62,8 @@ npm install --save cool-path
 
   - `deleteIn(source?: any)`
 
+  - `existIn(source?: any,start?:number | Path)`
+
 - Static Methods
 
   - `parse(pattern: Pattern)`
@@ -71,6 +73,8 @@ npm install --save cool-path
   - `setIn(source: any, pattern: Pattern, value: any)`
 
   - `deleteIn(source: any, pattern: Pattern)`
+
+  - `existIn(source: any,pattern: Pattern,start?:number | Path)`
 
   - `transform<T>(pattern: Pattern,regexp: string | RegExp,callback: (...args: string[]) => T):T`
 

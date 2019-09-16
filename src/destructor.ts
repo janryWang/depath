@@ -10,9 +10,10 @@ import {
 import { isNum } from './utils'
 
 type Mutatators = {
-  getIn: (segments: Segments, source: any) => any,
-  setIn: (segments: Segments, source: any, value: any) => void,
-  deleteIn?: (segments: Segments, source: any) => any,
+  getIn: (segments: Segments, source: any) => any
+  setIn: (segments: Segments, source: any, value: any) => void
+  deleteIn?: (segments: Segments, source: any) => any
+  existIn?: (segments: Segments, source: any, start: number) => boolean
 }
 
 const DestrcutorCache = new Map()
@@ -29,7 +30,7 @@ export const parseDestructorRules = (node: Node): DestrcutorRules => {
   let rules = []
   if (isObjectPattern(node)) {
     let index = 0
-    node.properties.forEach((child) => {
+    node.properties.forEach(child => {
       rules[index] = {
         path: []
       }
@@ -41,7 +42,7 @@ export const parseDestructorRules = (node: Node): DestrcutorRules => {
       const basePath = rules[index].path
       const childRules = parseDestructorRules(child.value as Node)
       let k = index
-      childRules.forEach((rule) => {
+      childRules.forEach(rule => {
         if (rules[k]) {
           rules[k].key = rule.key
           rules[k].path = basePath.concat(rule.path)
@@ -74,7 +75,7 @@ export const parseDestructorRules = (node: Node): DestrcutorRules => {
       const basePath = rules[index].path
       const childRules = parseDestructorRules(child as Node)
       let k = index
-      childRules.forEach((rule) => {
+      childRules.forEach(rule => {
         if (rules[k]) {
           rules[k].key = rule.key
           rules[k].path = basePath.concat(rule.path)
@@ -93,12 +94,12 @@ export const parseDestructorRules = (node: Node): DestrcutorRules => {
       }
     })
     return rules
-  } if (isDestructorExpression(node)) {
+  }
+  if (isDestructorExpression(node)) {
     return parseDestructorRules(node.value)
   }
   return rules
 }
-
 
 export const setInByDestructor = (
   source: any,
@@ -135,5 +136,16 @@ export const deleteInByDestructor = (
 ) => {
   rules.forEach(({ key }) => {
     mutators.deleteIn([key], source)
+  })
+}
+
+export const existInByDestructor = (
+  source: any,
+  rules: DestrcutorRules,
+  start: number,
+  mutators: Mutatators
+) => {
+  return rules.every(({ key }) => {
+    return mutators.existIn([key], source, start)
   })
 }
