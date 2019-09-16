@@ -428,6 +428,12 @@ export class Path {
     return this.segments.reduce(callback, initial)
   }
 
+  getNearestChildPathBy = (target?:Pattern)=>{
+    const path = Path.parse(target)
+    if(path.length < this.length) return this
+    return this.concat(path.segments[this.length])
+  }
+
   parent = () => {
     return this.slice(0, this.length - 1)
   }

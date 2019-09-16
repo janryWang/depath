@@ -237,4 +237,10 @@ test('existIn with a.b.c', () => {
       'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}'
     )
   ).toEqual(false)
+  expect(
+    Path.existIn(
+      { a: [{}] },
+      'a.0'
+    )
+  ).toEqual(true)
 })
