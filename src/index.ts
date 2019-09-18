@@ -25,7 +25,10 @@ import { LRUMap } from './lru'
 const pathCache = new LRUMap(1000)
 
 const match = (path: Segments, tree: Node) => {
-  const _match = (path: Segments, node: Node, start = 0) => {
+  let start = 0
+  let lastNode = tree
+  let parents = []
+  const _match = (path: Segments, node: Node) => {
     if (!node) {
       if (path[start + 1]) return false
       if (start == path.length - 1) return true
@@ -38,9 +41,7 @@ const match = (path: Segments, tree: Node) => {
           return (
             node.value ===
               String(path[start]).substring(0, node.value.length) &&
-            (node.after.after
-              ? _match(path, node.after.after, start)
-              : !!path[start])
+            (node.after.after ? _match(path, node.after.after) : !!path[start])
           )
         }
         if (path[start + 1] && !node.after) {
@@ -55,39 +56,48 @@ const match = (path: Segments, tree: Node) => {
       }
       return (
         isEqual(node.value, path[start]) &&
-        (node.after ? _match(path, node.after, start) : !!path[start])
+        (node.after ? _match(path, node.after) : !!path[start])
       )
     } else if (isIgnoreExpression(node)) {
       return (
         isEqual(node.value, String(path[start] || '').replace(/\s*/g, '')) &&
-        (node.after ? _match(path, node.after, start) : !!path[start])
+        (node.after ? _match(path, node.after) : !!path[start])
       )
     } else if (isDestructorExpression(node)) {
       return (
         isEqual(node.source, String(path[start] || '').replace(/\s*/g, '')) &&
-        (node.after ? _match(path, node.after, start) : !!path[start])
+        (node.after ? _match(path, node.after) : !!path[start])
       )
     } else if (isExpandOperator(node)) {
-      return _match(path, node.after, start)
+      return _match(path, node.after)
     } else if (isWildcardOperator(node)) {
       lastNode = node
       parents.push(node)
-      const result = node.filter
-        ? _match(path, node.filter, start)
-        : node.after
-        ? _match(path, node.after, start)
-        : !!path[start]
+      let result = false
+      if (node.filter) {
+        if (node.after) {
+          result = _match(path, node.filter) && _match(path, node.after)
+        } else {
+          result = _match(path, node.filter)
+        }
+      } else {
+        if (node.after) {
+          result = _match(path, node.after)
+        } else {
+          result = !!path[start]
+        }
+      }
       parents.pop()
       return result
     } else if (isGroupExpression(node)) {
       if (node.isExclude) {
         return toArray(node.value).every(_node => {
-          const unmatched = !_match(path, _node, start)
+          const unmatched = !_match(path, _node)
           return unmatched
         })
       } else {
         return toArray(node.value).some(_node => {
-          const matched = _match(path, _node, start)
+          const matched = _match(path, _node)
           return matched
         })
       }
@@ -98,32 +108,31 @@ const match = (path: Segments, tree: Node) => {
           return (
             path[start] >= parseInt(node.start.value) &&
             path[start] <= parseInt(node.end.value) &&
-            _match(path, parent.after, start)
+            _match(path, parent.after)
           )
         } else {
           return (
             path[start] >= parseInt(node.start.value) &&
-            _match(path, parent.after, start)
+            _match(path, parent.after)
           )
         }
       } else {
         if (node.end) {
           return (
             path[start] <= parseInt(node.end.value) &&
-            _match(path, parent.after, start)
+            _match(path, parent.after)
           )
         } else {
-          return _match(path, parent.after, start)
+          return _match(path, parent.after)
         }
       }
     } else if (isDotOperator(node)) {
-      return _match(path, node.after, start + 1)
+      start++
+      return _match(path, node.after)
     }
 
     return true
   }
-  let lastNode = tree
-  let parents = []
   const result = _match(path, tree)
 
   if (!lastNode) return false
@@ -428,9 +437,9 @@ export class Path {
     return this.segments.reduce(callback, initial)
   }
 
-  getNearestChildPathBy = (target?:Pattern)=>{
+  getNearestChildPathBy = (target?: Pattern) => {
     const path = Path.parse(target)
-    if(path.length < this.length) return this
+    if (path.length < this.length) return this
     return this.concat(path.segments[this.length])
   }
 

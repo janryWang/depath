@@ -31,7 +31,6 @@ const unmatch = obj => {
   }
 }
 
-
 match({
   '*': [[], ['aa'], ['aa', 'bb', 'cc'], ['aa', 'dd', 'gg']],
   '*.a.b': [['c', 'a', 'b'], ['k', 'a', 'b'], ['m', 'a', 'b']],
@@ -74,5 +73,6 @@ unmatch({
   '*(!aaa)': [['aaa']],
   a: [['c', 'b']],
   'aa~.ccc': [['a', 'ccc'], ['aa'], ['aaasdd']],
-  bb: [['bb', 'cc']]
+  bb: [['bb', 'cc']],
+  'aa.*(cc,bb).*.aa': [['aa', 'cc', '0', 'bb']]
 })
