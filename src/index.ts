@@ -24,16 +24,21 @@ export * from './types'
 import { LRUMap } from './lru'
 const pathCache = new LRUMap(1000)
 
-const match = (path: Segments, tree: Node) => {
+const match = (
+  path: Segments,
+  tree: Node,
+  match?: (path: Segments, node: Node) => boolean
+) => {
   let start = 0
   let lastNode = tree
   let parents = []
+  let substr = []
+  match = isFn(match) ? match : () => true
   const _match = (path: Segments, node: Node) => {
     if (!node) {
       if (path[start + 1]) return false
       if (start == path.length - 1) return true
     }
-
     if (isIdentifier(node)) {
       lastNode = node
       if (isIdentifier(node)) {
@@ -128,12 +133,14 @@ const match = (path: Segments, tree: Node) => {
       }
     } else if (isDotOperator(node)) {
       start++
-      return _match(path, node.after)
+      substr = path.slice(0, start + 1)
+      return match(substr, node) && _match(path, node.after)
     }
 
     return true
   }
-  const result = _match(path, tree)
+  substr = substr.concat(path[0] !== undefined ? path[0] : [])
+  const result = match(substr, tree) && _match(path, tree)
 
   if (!lastNode) return false
   if (lastNode == tree && isWildcardOperator(lastNode)) {
@@ -488,23 +495,26 @@ export class Path {
     return callback(...args)
   }
 
-  match = (pattern: Pattern) => {
+  match = (
+    pattern: Pattern,
+    matcher?: (path: Segments, node: Node) => boolean
+  ) => {
     const path = Path.getPath(pattern)
     const cache = this.matchCache.get(path.entire)
-    if (cache !== undefined) return cache
+    if (cache !== undefined && !matcher) return cache
     const cacheWith = (value: boolean): boolean => {
-      this.matchCache.set(path.entire, value)
+      if (!matcher) this.matchCache.set(path.entire, value)
       return value
     }
     if (path.isMatchPattern) {
       if (this.isMatchPattern) {
         throw new Error(`${path.entire} cannot match ${this.entire}`)
       } else {
-        return cacheWith(path.match(this.segments))
+        return cacheWith(path.match(this.segments, matcher))
       }
     } else {
       if (this.isMatchPattern) {
-        return cacheWith(match(path.segments, this.tree))
+        return cacheWith(match(path.segments, this.tree, matcher))
       } else {
         if (path.segments.length != this.segments.length)
           return cacheWith(false)
@@ -536,10 +546,13 @@ export class Path {
     return source
   }
 
-  static match(pattern: Pattern) {
+  static match(
+    pattern: Pattern,
+    match?: (path: Segments, node: Node) => boolean
+  ) {
     const path = Path.getPath(pattern)
     const matcher = target => {
-      return path.match(target)
+      return path.match(target, match)
     }
     matcher.path = path
     return matcher
