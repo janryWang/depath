@@ -1,5 +1,5 @@
 import { Parser } from './parser'
-import { isStr, isArr, isFn, isEqual, toArray, isObj, isNum } from './utils'
+import { isStr, isArr, isFn, isEqual, isObj, isNum } from './utils'
 import {
   getDestructor,
   getInByDestructor,
@@ -7,148 +7,11 @@ import {
   deleteInByDestructor,
   existInByDestructor
 } from './destructor'
-import {
-  Segments,
-  Node,
-  Pattern,
-  isIdentifier,
-  isExpandOperator,
-  isWildcardOperator,
-  isGroupExpression,
-  isRangeExpression,
-  isIgnoreExpression,
-  isDotOperator,
-  isDestructorExpression
-} from './types'
+import { Segments, Node, Pattern, MatchInterceptor } from './types'
 export * from './types'
 import { LRUMap } from './lru'
+import { Matcher } from './matcher'
 const pathCache = new LRUMap(1000)
-
-const match = (
-  path: Segments,
-  tree: Node,
-  match?: (path: Segments, node: Node) => boolean
-) => {
-  let start = 0
-  let lastNode = tree
-  let parents = []
-  let substr = []
-  match = isFn(match) ? match : () => true
-  const _match = (path: Segments, node: Node) => {
-    if (!node) {
-      if (path[start + 1]) return false
-      if (start == path.length - 1) return true
-    }
-    if (isIdentifier(node)) {
-      lastNode = node
-      if (isIdentifier(node)) {
-        if (isExpandOperator(node.after)) {
-          return (
-            node.value ===
-              String(path[start]).substring(0, node.value.length) &&
-            (node.after.after ? _match(path, node.after.after) : !!path[start])
-          )
-        }
-        if (path[start + 1] && !node.after) {
-          if (parents.length) {
-            for (let i = parents.length - 1; i >= 0; i--) {
-              if (!parents[i].after || !parents[i].filter) return false
-            }
-          } else {
-            return false
-          }
-        }
-      }
-      return (
-        isEqual(node.value, path[start]) &&
-        (node.after ? _match(path, node.after) : !!path[start])
-      )
-    } else if (isIgnoreExpression(node)) {
-      return (
-        isEqual(node.value, String(path[start] || '').replace(/\s*/g, '')) &&
-        (node.after ? _match(path, node.after) : !!path[start])
-      )
-    } else if (isDestructorExpression(node)) {
-      return (
-        isEqual(node.source, String(path[start] || '').replace(/\s*/g, '')) &&
-        (node.after ? _match(path, node.after) : !!path[start])
-      )
-    } else if (isExpandOperator(node)) {
-      return _match(path, node.after)
-    } else if (isWildcardOperator(node)) {
-      lastNode = node
-      parents.push(node)
-      let result = false
-      if (node.filter) {
-        if (node.after) {
-          result = _match(path, node.filter) && _match(path, node.after)
-        } else {
-          result = _match(path, node.filter)
-        }
-      } else {
-        if (node.after) {
-          result = _match(path, node.after)
-        } else {
-          result = !!path[start]
-        }
-      }
-      parents.pop()
-      return result
-    } else if (isGroupExpression(node)) {
-      if (node.isExclude) {
-        return toArray(node.value).every(_node => {
-          const unmatched = !_match(path, _node)
-          return unmatched
-        })
-      } else {
-        return toArray(node.value).some(_node => {
-          const matched = _match(path, _node)
-          return matched
-        })
-      }
-    } else if (isRangeExpression(node)) {
-      const parent = parents[parents.length - 1]
-      if (node.start) {
-        if (node.end) {
-          return (
-            path[start] >= parseInt(node.start.value) &&
-            path[start] <= parseInt(node.end.value) &&
-            _match(path, parent.after)
-          )
-        } else {
-          return (
-            path[start] >= parseInt(node.start.value) &&
-            _match(path, parent.after)
-          )
-        }
-      } else {
-        if (node.end) {
-          return (
-            path[start] <= parseInt(node.end.value) &&
-            _match(path, parent.after)
-          )
-        } else {
-          return _match(path, parent.after)
-        }
-      }
-    } else if (isDotOperator(node)) {
-      start++
-      substr = path.slice(0, start + 1)
-      return match(substr, node) && _match(path, node.after)
-    }
-
-    return true
-  }
-  substr = substr.concat(path[0] !== undefined ? path[0] : [])
-  const result = match(substr, tree) && _match(path, tree)
-
-  if (!lastNode) return false
-  if (lastNode == tree && isWildcardOperator(lastNode)) {
-    return true
-  }
-
-  return result
-}
 
 const getIn = (segments: Segments, source: any) => {
   for (let i = 0; i < segments.length; i++) {
@@ -495,37 +358,31 @@ export class Path {
     return callback(...args)
   }
 
-  match = (
-    pattern: Pattern,
-    matcher?: (path: Segments, node: Node) => boolean
-  ) => {
+  match = (pattern: Pattern, interceptor?: MatchInterceptor): boolean => {
     const path = Path.getPath(pattern)
     const cache = this.matchCache.get(path.entire)
-    if (cache !== undefined && !matcher) return cache
+    if (cache !== undefined && !interceptor) return cache
     const cacheWith = (value: boolean): boolean => {
-      if (!matcher) this.matchCache.set(path.entire, value)
+      if (!interceptor) this.matchCache.set(path.entire, value)
       return value
     }
     if (path.isMatchPattern) {
       if (this.isMatchPattern) {
         throw new Error(`${path.entire} cannot match ${this.entire}`)
       } else {
-        return cacheWith(path.match(this.segments, matcher))
+        return cacheWith(path.match(this.segments, interceptor))
       }
     } else {
       if (this.isMatchPattern) {
-        return cacheWith(match(path.segments, this.tree, matcher))
+        return cacheWith(
+          new Matcher(this.tree, interceptor).match(path.segments)
+        )
       } else {
-        if (path.segments.length != this.segments.length)
-          return cacheWith(false)
-        for (let i = 0; i < path.segments.length; i++) {
-          if (!isEqual(path.segments[i], this.segments[i])) {
-            return cacheWith(false)
-          }
-        }
+        return cacheWith(
+          Matcher.matchSegments(this.segments, path.segments, interceptor)
+        )
       }
     }
-    return cacheWith(true)
   }
 
   existIn = (source?: any, start: number | Path = 0) => {
@@ -546,13 +403,10 @@ export class Path {
     return source
   }
 
-  static match(
-    pattern: Pattern,
-    match?: (path: Segments, node: Node) => boolean
-  ) {
+  static match(pattern: Pattern, interceptor?: MatchInterceptor) {
     const path = Path.getPath(pattern)
     const matcher = target => {
-      return path.match(target, match)
+      return path.match(target, interceptor)
     }
     matcher.path = path
     return matcher

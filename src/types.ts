@@ -118,3 +118,10 @@ export const isObjectPatternProperty = isType<ObjectPatternPropertyNode>(
 )
 
 export const isArrayPattern = isType<ArrayPatternNode>('ArrayPattern')
+
+export type MatchAPI = {
+  current: () => boolean
+  next: () => boolean
+}
+
+export type MatchInterceptor = (path: Segments, api: MatchAPI) => boolean

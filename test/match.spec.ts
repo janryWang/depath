@@ -31,6 +31,23 @@ const unmatch = obj => {
   }
 }
 
+test('interceptor match', () => {
+  expect(new Path('aa.bb.cc').match(['aa', 'kk', 'cc'])).toEqual(false)
+  expect(
+    new Path('aa.bb.cc').match(
+      ['oo', 'kk', 'cc'],
+      (path, { current, next }) => {
+        const last = path[path.length - 1]
+        if (last == 'kk' || last == 'oo') {
+          return next()
+        } else {
+          return current() && next()
+        }
+      }
+    )
+  ).toEqual(true)
+})
+
 match({
   '*': [[], ['aa'], ['aa', 'bb', 'cc'], ['aa', 'dd', 'gg']],
   '*.a.b': [['c', 'a', 'b'], ['k', 'a', 'b'], ['m', 'a', 'b']],
