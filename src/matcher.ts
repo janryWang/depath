@@ -71,7 +71,9 @@ export class Matcher {
     }
 
     if (this.interceptor) {
-      return this.interceptor(path.slice(0, this.pos + 1), {
+      return this.interceptor({
+        path: path.slice(0, this.pos + 1),
+        source: path,
         current,
         next
       })
@@ -209,7 +211,9 @@ export class Matcher {
       const current = () => isEqual(source[pos], target[pos])
       const next = () => (pos < source.length - 1 ? match(pos + 1) : true)
       if (interceptor) {
-        return interceptor(target.slice(0, pos + 1), {
+        return interceptor({
+          path: target.slice(0, pos + 1),
+          source: target,
           current,
           next
         })

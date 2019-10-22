@@ -36,7 +36,8 @@ test('interceptor match', () => {
   expect(
     new Path('aa.bb.cc').match(
       ['oo', 'kk', 'cc'],
-      (path, { current, next }) => {
+      ({ path, source, current, next }) => {
+        console.log(path, source)
         const last = path[path.length - 1]
         if (last == 'kk' || last == 'oo') {
           return next()
