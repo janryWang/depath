@@ -16,9 +16,7 @@ import {
   WildcardOperatorNode,
   GroupExpressionNode,
   RangeExpressionNode,
-  DotOperatorNode,
-  MatchInterceptor,
-  MatchAPI
+  DotOperatorNode
 } from './types'
 import { isEqual, toArray } from './utils'
 
@@ -31,13 +29,10 @@ export class Matcher {
 
   private stack: any[]
 
-  private interceptor: MatchInterceptor
-
-  constructor(tree: Node, interceptor?: MatchInterceptor) {
+  constructor(tree: Node) {
     this.tree = tree
     this.pos = 0
     this.stack = []
-    this.interceptor = interceptor
   }
 
   currentElement(path: Segments) {
@@ -59,7 +54,7 @@ export class Matcher {
         return false
       }
     }
-    let current: MatchAPI['current'], next: MatchAPI['next']
+    let current: any, next: any
 
     if (isExpandOperator(node.after)) {
       current = () =>
@@ -68,15 +63,6 @@ export class Matcher {
     } else {
       current = () => isEqual(node.value, path[this.pos])
       next = () => this.matchNext(node, path)
-    }
-
-    if (this.interceptor) {
-      return this.interceptor({
-        path: path.slice(0, this.pos + 1),
-        source: path,
-        current,
-        next
-      })
     }
 
     return current() && next()
@@ -202,22 +188,13 @@ export class Matcher {
 
   static matchSegments(
     source: Segments,
-    target: Segments,
-    interceptor?: MatchInterceptor
+    target: Segments
   ) {
     let pos = 0
     if (source.length !== target.length) return false
     const match = (pos: number) => {
       const current = () => isEqual(source[pos], target[pos])
       const next = () => (pos < source.length - 1 ? match(pos + 1) : true)
-      if (interceptor) {
-        return interceptor({
-          path: target.slice(0, pos + 1),
-          source: target,
-          current,
-          next
-        })
-      }
       return current() && next()
     }
 

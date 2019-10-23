@@ -7,7 +7,7 @@ import {
   deleteInByDestructor,
   existInByDestructor
 } from './destructor'
-import { Segments, Node, Pattern, MatchInterceptor } from './types'
+import { Segments, Node, Pattern } from './types'
 export * from './types'
 import { LRUMap } from './lru'
 import { Matcher } from './matcher'
@@ -358,29 +358,25 @@ export class Path {
     return callback(...args)
   }
 
-  match = (pattern: Pattern, interceptor?: MatchInterceptor): boolean => {
+  match = (pattern: Pattern): boolean => {
     const path = Path.getPath(pattern)
     const cache = this.matchCache.get(path.entire)
-    if (cache !== undefined && !interceptor) return cache
+    if (cache !== undefined) return cache
     const cacheWith = (value: boolean): boolean => {
-      if (!interceptor) this.matchCache.set(path.entire, value)
+      this.matchCache.set(path.entire, value)
       return value
     }
     if (path.isMatchPattern) {
       if (this.isMatchPattern) {
         throw new Error(`${path.entire} cannot match ${this.entire}`)
       } else {
-        return cacheWith(path.match(this.segments, interceptor))
+        return cacheWith(path.match(this.segments))
       }
     } else {
       if (this.isMatchPattern) {
-        return cacheWith(
-          new Matcher(this.tree, interceptor).match(path.segments)
-        )
+        return cacheWith(new Matcher(this.tree).match(path.segments))
       } else {
-        return cacheWith(
-          Matcher.matchSegments(this.segments, path.segments, interceptor)
-        )
+        return cacheWith(Matcher.matchSegments(this.segments, path.segments))
       }
     }
   }
@@ -403,10 +399,10 @@ export class Path {
     return source
   }
 
-  static match(pattern: Pattern, interceptor?: MatchInterceptor) {
+  static match(pattern: Pattern) {
     const path = Path.getPath(pattern)
     const matcher = target => {
-      return path.match(target, interceptor)
+      return path.match(target)
     }
     matcher.path = path
     return matcher
