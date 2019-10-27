@@ -123,6 +123,7 @@ export const getInByDestructor = (
       response = []
     }
   }
+  source = source !== undefined ? source : {}
   rules.forEach(({ key, path }) => {
     mutators.setIn(path, response, source[key])
   })

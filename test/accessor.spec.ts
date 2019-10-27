@@ -237,10 +237,47 @@ test('existIn with a.b.c', () => {
       'a.b.c.{aaa:ooo,bbb:[ccc,ddd]}'
     )
   ).toEqual(false)
+  expect(Path.existIn({ a: [{}] }, 'a.0')).toEqual(true)
+})
+
+test('complex destructing', () => {
   expect(
-    Path.existIn(
-      { a: [{}] },
-      'a.0'
+    Path.setIn(
+      {},
+      '{aa:{bb:{cc:destructor1,dd:[destructor2,destructor3],ee}}}',
+      {
+        aa: {
+          bb: {
+            cc: 123,
+            dd: [333, 444],
+            ee: 'abcde'
+          }
+        }
+      }
     )
-  ).toEqual(true)
+  ).toEqual({
+    destructor1: 123,
+    destructor2: 333,
+    destructor3: 444,
+    ee: 'abcde'
+  })
+  expect(
+    Path.getIn(
+      {
+        destructor1: 123,
+        destructor2: 333,
+        destructor3: 444,
+        ee: 'abcde'
+      },
+      '{aa:{bb:{cc:destructor1,dd:[destructor2,destructor3],ee}}}'
+    )
+  ).toEqual({
+    aa: {
+      bb: {
+        cc: 123,
+        dd: [333, 444],
+        ee: 'abcde'
+      }
+    }
+  })
 })
