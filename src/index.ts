@@ -13,6 +13,8 @@ import { LRUMap } from './lru'
 import { Matcher } from './matcher'
 const pathCache = new LRUMap(1000)
 
+const isMatcher = Symbol('PATH_MATCHER')
+
 const getIn = (segments: Segments, source: any) => {
   for (let i = 0; i < segments.length; i++) {
     let index = segments[i]
@@ -203,6 +205,8 @@ export class Path {
           tree
         }
       }
+    } else if (isFn(pattern) && pattern[isMatcher]) {
+      return this.parse(pattern['path'])
     } else if (isArr(pattern)) {
       return {
         entire: pattern.join('.'),
@@ -404,6 +408,7 @@ export class Path {
     const matcher = target => {
       return path.match(target)
     }
+    matcher[isMatcher] = true
     matcher.path = path
     return matcher
   }
@@ -429,6 +434,8 @@ export class Path {
         pathCache.set(path.entire, path)
         return path
       }
+    } else if (path && path[isMatcher]) {
+      return Path.getPath(path['path'])
     } else {
       const key = path.toString()
       const found = pathCache.get(key)

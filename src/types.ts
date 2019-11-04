@@ -79,7 +79,11 @@ export type DestrcutorRule = {
   path?: Array<number | string>
 }
 
-export type Pattern = string | number | Path | Segments
+export type MatcherFunction = ((path: Segments) => boolean) & {
+  path: Path
+}
+
+export type Pattern = string | number | Path | Segments | MatcherFunction
 
 export type DestrcutorRules = DestrcutorRule[]
 
