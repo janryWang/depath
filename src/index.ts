@@ -135,6 +135,7 @@ export class Path {
   public segments: Segments
   public isMatchPattern: boolean
   public isWildMatchPattern: boolean
+  public haveExcludePattern: boolean
   public tree: Node
   private matchCache: any
   private includesCache: any
@@ -145,12 +146,14 @@ export class Path {
       segments,
       entire,
       isMatchPattern,
-      isWildMatchPattern
+      isWildMatchPattern,
+      haveExcludePattern
     } = this.parse(input)
     this.entire = entire
     this.segments = segments
     this.isMatchPattern = isMatchPattern
     this.isWildMatchPattern = isWildMatchPattern
+    this.haveExcludePattern = haveExcludePattern
     this.tree = tree as Node
     this.matchCache = new LRUMap(200)
     this.includesCache = new LRUMap(200)
@@ -175,6 +178,7 @@ export class Path {
         segments: pattern.segments.slice(),
         isWildMatchPattern: pattern.isWildMatchPattern,
         isMatchPattern: pattern.isMatchPattern,
+        haveExcludePattern: pattern.haveExcludePattern,
         tree: pattern.tree
       }
     } else if (isStr(pattern)) {
@@ -183,6 +187,7 @@ export class Path {
           entire: '',
           segments: [],
           isWildMatchPattern: false,
+          haveExcludePattern: false,
           isMatchPattern: false
         }
       const parser = new Parser(pattern)
@@ -194,6 +199,7 @@ export class Path {
           segments,
           tree,
           isWildMatchPattern: false,
+          haveExcludePattern: false,
           isMatchPattern: false
         }
       } else {
@@ -201,6 +207,7 @@ export class Path {
           entire: pattern,
           segments: [],
           isWildMatchPattern: parser.isWildMatchPattern,
+          haveExcludePattern: parser.haveExcludePattern,
           isMatchPattern: true,
           tree
         }
@@ -214,6 +221,7 @@ export class Path {
           return buf.concat(this.parseString(key))
         }, []),
         isWildMatchPattern: false,
+        haveExcludePattern: false,
         isMatchPattern: false
       }
     } else {
@@ -221,6 +229,7 @@ export class Path {
         entire: '',
         segments: pattern !== undefined ? [pattern] : [],
         isWildMatchPattern: false,
+        haveExcludePattern: false,
         isMatchPattern: false
       }
     }
@@ -382,6 +391,16 @@ export class Path {
       } else {
         return cacheWith(Matcher.matchSegments(this.segments, path.segments))
       }
+    }
+  }
+
+  //别名组匹配
+  matchAliasGroup = (...patterns: Pattern[]) => {
+    if (patterns.length === 0) return false
+    if (this.haveExcludePattern) {
+      return patterns.every(pattern => this.match(pattern))
+    } else {
+      return patterns.some(pattern => this.match(pattern))
     }
   }
 

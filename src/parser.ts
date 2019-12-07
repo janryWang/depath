@@ -40,6 +40,8 @@ export class Parser extends Tokenizer {
 
   public isWildMatchPattern: boolean
 
+  public haveExcludePattern:boolean
+
   public data: {
     segments: Segments
     tree?: Node
@@ -304,6 +306,7 @@ export class Parser extends Tokenizer {
           break
         case bangTok:
           node.isExclude = true
+          this.haveExcludePattern = true
           this.next()
           break
         case eofTok:

@@ -31,6 +31,13 @@ const unmatch = obj => {
   }
 }
 
+test('test matchGroup',()=>{
+  const pattern = new Path('*(aa,bb,cc)')
+  expect(pattern.matchAliasGroup('aa','bb','dd')).toEqual(true)
+  const excludePattern = new Path('aa.bb.*(11,22,33).*(!aa,bb,cc)')
+  expect(excludePattern.matchAliasGroup('aa.bb.11.mm','aa.bb.22.bb','aa.bb.33.cc')).toEqual(false)
+})
+
 match({
   '*': [[], ['aa'], ['aa', 'bb', 'cc'], ['aa', 'dd', 'gg']],
   '*.a.b': [['c', 'a', 'b'], ['k', 'a', 'b'], ['m', 'a', 'b']],
