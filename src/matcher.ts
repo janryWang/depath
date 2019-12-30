@@ -61,7 +61,7 @@ export class Matcher {
         node.value === String(path[this.pos]).substring(0, node.value.length)
       next = () => this.matchNext(node.after, path)
     } else {
-      current = () => isEqual(node.value, path[this.pos])
+      current = () => isEqual(String(node.value), String(path[this.pos]))
       next = () => this.matchNext(node, path)
     }
 

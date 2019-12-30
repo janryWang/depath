@@ -38,6 +38,10 @@ test('test matchGroup',()=>{
   expect(excludePattern.matchAliasGroup('aa.bb.11.mm','aa.bb.22.bb','aa.bb.33.cc')).toEqual(false)
 })
 
+test('test zero',()=>{
+  expect(Path.parse('t.0.value~').match(["t", 0, "value_list"])).toEqual(true)
+})
+
 match({
   '*': [[], ['aa'], ['aa', 'bb', 'cc'], ['aa', 'dd', 'gg']],
   '*.a.b': [['c', 'a', 'b'], ['k', 'a', 'b'], ['m', 'a', 'b']],
@@ -55,6 +59,7 @@ match({
     ['a', 'd', 'k'],
     ['a', 'm', 'k']
   ],
+  't.0.value~':[['t','0','value']],
   'a.*[10:50].*(!a,b)': [['a', 49, 's'], ['a', 10, 's'], ['a', 50, 's']],
   'a.*[:50].*(!a,b)': [['a', 49, 's'], ['a', 10, 's'], ['a', 50, 's']],
   'a.*([[a.b.c]],[[c.b.d~]])': [['a', '[[a.b.c]]'], ['a', 'c.b.d~']],
