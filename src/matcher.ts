@@ -59,7 +59,7 @@ export class Matcher {
     if (isExpandOperator(node.after)) {
       current = () =>
         node.value === String(path[this.pos]).substring(0, node.value.length)
-      next = () => this.matchNext(node.after, path)
+      next = () => this.matchNext(node, path)
     } else {
       current = () => isEqual(String(node.value), String(path[this.pos]))
       next = () => this.matchNext(node, path)
@@ -152,6 +152,7 @@ export class Matcher {
 
   matchAtom(path: Segments, node: Node) {
     if (!node) {
+      if (this.stack.length > 0) return true
       if (path[this.pos + 1]) return false
       if (this.pos == path.length - 1) return true
     }
@@ -186,10 +187,7 @@ export class Matcher {
     return matched
   }
 
-  static matchSegments(
-    source: Segments,
-    target: Segments
-  ) {
+  static matchSegments(source: Segments, target: Segments) {
     let pos = 0
     if (source.length !== target.length) return false
     const match = (pos: number) => {
