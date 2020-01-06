@@ -244,30 +244,37 @@ export class Path {
       } catch (e) {
         return source
       }
+    } else if (source instanceof Path) {
+      return source.segments
     }
     return source
   }
 
-  concat = (...args: Array<string | number>) => {
+  concat = (...args: any[]) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be concat`)
     }
-    return Path.getPath(this.segments.concat(...args))
+    const path = new Path('')
+    path.segments = this.segments.concat(...args.map(s => this.parseString(s)))
+    path.entire = path.segments.join('.')
+    return path
   }
 
   slice = (start?: number, end?: number) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be slice`)
     }
-    return Path.getPath(this.segments.slice(start, end))
+    const path = new Path('')
+    path.segments = this.segments.slice(start, end)
+    path.entire = path.segments.join('.')
+    return path
   }
 
   push = (item: string | number) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be push`)
     }
-    item = this.parseString(item)
-    this.segments.push(item)
+    this.segments.push(this.parseString(item))
     this.entire = this.segments.join('.')
     return this
   }
