@@ -250,7 +250,7 @@ export class Path {
     return source
   }
 
-  concat = (...args: any[]) => {
+  concat = (...args: Pattern[]) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be concat`)
     }
@@ -270,7 +270,7 @@ export class Path {
     return path
   }
 
-  push = (item: string | number) => {
+  push = (item: Pattern) => {
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be push`)
     }
