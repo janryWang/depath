@@ -54,6 +54,15 @@ test('test multi expand', () => {
   expect(Path.parse('*(aa~,bb~).*').match(['aa12323', 'asdasd'])).toEqual(true)
 })
 
+test('test group', () => {
+  const node = Path.parse('*(phases.*.type,phases.*.steps.*.type)')
+  expect(
+    node.match(
+      'phases.0.steps.1.type'
+    )
+  ).toBeTruthy()
+})
+
 match({
   '*': [[], ['aa'], ['aa', 'bb', 'cc'], ['aa', 'dd', 'gg']],
   '*.a.b': [['c', 'a', 'b'], ['k', 'a', 'b'], ['m', 'a', 'b']],

@@ -48,7 +48,9 @@ export class Matcher {
     if (path[this.pos + 1] && !node.after) {
       if (this.stack.length) {
         for (let i = this.stack.length - 1; i >= 0; i--) {
-          if (!this.stack[i].after || !this.stack[i].filter) return false
+          if (!this.stack[i].after || !this.stack[i].filter) {
+            return false
+          }
         }
       } else {
         return false
@@ -62,7 +64,9 @@ export class Matcher {
       next = () => this.matchNext(node, path)
     } else {
       current = () => isEqual(String(node.value), String(path[this.pos]))
-      next = () => this.matchNext(node, path)
+      next = () => {
+        return this.matchNext(node, path)
+      }
     }
 
     return current() && next()
@@ -105,15 +109,17 @@ export class Matcher {
   }
 
   matchGroupExpression(path: Segments, node: GroupExpressionNode) {
+    const current = this.pos
     if (node.isExclude) {
       return toArray(node.value).every(_node => {
+        this.pos = current
         const unmatched = !this.matchAtom(path, _node)
         return unmatched
       })
     } else {
       return toArray(node.value).some(_node => {
-        const matched = this.matchAtom(path, _node)
-        return matched
+        this.pos = current
+        return this.matchAtom(path, _node)
       })
     }
   }
