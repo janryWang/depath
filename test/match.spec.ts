@@ -38,6 +38,10 @@ test('test matchGroup', () => {
   expect(
     excludePattern.matchAliasGroup('aa.bb.11.mm', 'aa.bb.22.bb', 'aa.bb.33.cc')
   ).toEqual(false)
+  const patttern2 = Path.parse('*(array)')
+  expect(
+    patttern2.matchAliasGroup(['array',0],['array',0])
+  ).toEqual(false)
 })
 
 test('test zero', () => {
@@ -101,6 +105,7 @@ match({
 
 unmatch({
   'a.*': [['a'], ['b']],
+  '*(array)': [['array','0']],
   'aa.bb.*': [['aa', 'bb']],
   'a.*.b': [['a', 'k', 'b', 'd']],
   '*(!aaa)': [['aaa']],

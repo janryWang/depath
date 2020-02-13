@@ -20,6 +20,8 @@ import {
 } from './types'
 import { isEqual, toArray } from './utils'
 
+const isValid = val => val !== undefined && val !== null && val !== ''
+
 export class Matcher {
   private tree: Node
 
@@ -40,12 +42,14 @@ export class Matcher {
   }
 
   matchNext = (node: any, path: any) => {
-    return node.after ? this.matchAtom(path, node.after) : !!path[this.pos]
+    return node.after
+      ? this.matchAtom(path, node.after)
+      : isValid(path[this.pos])
   }
 
   matchIdentifier(path: Segments, node: IdentifierNode) {
     this.tail = node
-    if (path[this.pos + 1] && !node.after) {
+    if (isValid(path[this.pos + 1]) && !node.after) {
       if (this.stack.length) {
         for (let i = this.stack.length - 1; i >= 0; i--) {
           if (!this.stack[i].after || !this.stack[i].filter) {
@@ -159,7 +163,7 @@ export class Matcher {
   matchAtom(path: Segments, node: Node) {
     if (!node) {
       if (this.stack.length > 0) return true
-      if (path[this.pos + 1]) return false
+      if (isValid(path[this.pos + 1])) return false
       if (this.pos == path.length - 1) return true
     }
     if (isIdentifier(node)) {
