@@ -72,6 +72,20 @@ test('destruct getIn', () => {
       }`
     )
   ).toEqual(value)
+  expect(getIn({ bb: undefined, dd: undefined }, `[{aa:bb,cc:dd}]`)).toEqual([])
+  expect(
+    getIn(
+      { kk: undefined, mm: undefined },
+      `{
+        a : {
+          b : {
+            c : kk,
+            d : mm
+          }
+        }
+      }`
+    )
+  ).toEqual({})
 })
 
 test('destruct setIn', () => {
@@ -91,6 +105,7 @@ test('destruct setIn', () => {
       value
     )
   ).toEqual({ c: 2, d: 333 })
+
   expect(
     setIn(
       {},

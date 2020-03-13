@@ -357,7 +357,7 @@ export class Path {
     }
     if (segments.length > this.segments.length) return cacheWith(false)
     for (let i = 0; i < segments.length; i++) {
-      if (!isEqual(segments[i], this.segments[i])) {
+      if (!isEqual(String(segments[i]), String(this.segments[i]))) {
         return cacheWith(false)
       }
     }
