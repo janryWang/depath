@@ -36,12 +36,22 @@ test('test matchGroup', () => {
   expect(pattern.matchAliasGroup('aa', 'bb', 'dd')).toEqual(true)
   const excludePattern = new Path('aa.bb.*(11,22,33).*(!aa,bb,cc)')
   expect(
-    excludePattern.matchAliasGroup('aa.bb.11.mm', 'aa.bb.22.bb', 'aa.bb.33.cc')
-  ).toEqual(false)
-  const patttern2 = Path.parse('*(array)')
+    excludePattern.matchAliasGroup('aa.bb.11.mm', 'aa.cc.dd.bb.11.mm')
+  ).toEqual(true)
+  expect(excludePattern.matchAliasGroup('aa.cc', 'aa.kk.cc')).toEqual(false)
+  expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb', 'aa.bb')).toEqual(
+    false
+  )
   expect(
-    patttern2.matchAliasGroup(['array',0],['array',0])
+    new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb.cc', 'aa.bb.cc')
   ).toEqual(false)
+  expect(new Path('aa.*(!bb,oo)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
+  expect(new Path('aa.*(!bb.*)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
+  expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.cc', 'aa.cc')).toEqual(
+    true
+  )
+  const patttern2 = Path.parse('*(array)')
+  expect(patttern2.matchAliasGroup(['array', 0], ['array', 0])).toEqual(false)
 })
 
 test('test zero', () => {
@@ -60,11 +70,7 @@ test('test multi expand', () => {
 
 test('test group', () => {
   const node = Path.parse('*(phases.*.type,phases.*.steps.*.type)')
-  expect(
-    node.match(
-      'phases.0.steps.1.type'
-    )
-  ).toBeTruthy()
+  expect(node.match('phases.0.steps.1.type')).toBeTruthy()
 })
 
 match({
@@ -84,6 +90,16 @@ match({
     ['a', 'd', 'k'],
     ['a', 'm', 'k']
   ],
+  'a.b.*': [
+    ['a', 'b', 'c', 'd'],
+    ['a', 'b', 'c'],
+    ['a', 'b', 2, 'aaa', 3, 'bbb']
+  ],
+  '*(step1,step2).*': [
+    ['step1', 'aa', 'bb'],
+    ['step1', 'aa', 'bb', 'ccc', 'ddd']
+  ],
+  'dyanmic.*(!dynamic-1)': [['dyanmic', 'dynamic-2'], ['dyanmic', 'dynamic-3']],
   't.0.value~': [['t', '0', 'value']],
   'a.*[10:50].*(!a,b)': [['a', 49, 's'], ['a', 10, 's'], ['a', 50, 's']],
   'a.*[:50].*(!a,b)': [['a', 49, 's'], ['a', 10, 's'], ['a', 50, 's']],
@@ -99,16 +115,20 @@ match({
   'aa~.ccc': [['aa', 'ccc'], ['aa12', 'ccc']],
   '*(aa~,bb~).*': [['aa12323', 'asdasd'], ['bb12222', 'asd']],
   '*(aa,bb,bb.aa)': [['bb', 'aa']],
-  '*(!aa,bb,bb.aa)': [['xx'], ['yyy'], ['bb', 'ss']],
+  '*(!aa,bb,bb.aa)': [['xx'], ['yyy']],
   '*(!aaa)': [['bbb']]
 })
 
 unmatch({
   'a.*': [['a'], ['b']],
-  '*(array)': [['array','0']],
+  '*(array)': [['array', '0']],
   'aa.bb.*': [['aa', 'bb']],
   'a.*.b': [['a', 'k', 'b', 'd']],
   '*(!aaa)': [['aaa']],
+  'dyanmic.*(!dynamic-1)': [
+    ['dyanmic', 'dynamic-1', 'ccc'],
+    ['dyanmic', 'dynamic-1']
+  ],
   a: [['c', 'b']],
   'aa~.ccc': [['a', 'ccc'], ['aa'], ['aaasdd']],
   bb: [['bb', 'cc']],

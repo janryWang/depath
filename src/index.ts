@@ -404,11 +404,7 @@ export class Path {
   //别名组匹配
   matchAliasGroup = (...patterns: Pattern[]) => {
     if (patterns.length === 0) return false
-    if (this.haveExcludePattern) {
-      return patterns.every(pattern => this.match(pattern))
-    } else {
-      return patterns.some(pattern => this.match(pattern))
-    }
+    return patterns.some(pattern => this.match(pattern))
   }
 
   existIn = (source?: any, start: number | Path = 0) => {

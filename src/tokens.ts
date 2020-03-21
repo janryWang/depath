@@ -54,7 +54,8 @@ export const starTok = TokenType('*', {
       next === parenLTok ||
       next === bracketLTok ||
       next === eofTok ||
-      next === commaTok
+      next === commaTok ||
+      next === parenRTok
     )
   }
 })

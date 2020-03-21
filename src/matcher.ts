@@ -31,9 +31,12 @@ export class Matcher {
 
   private stack: any[]
 
+  private excluding: boolean
+
   constructor(tree: Node) {
     this.tree = tree
     this.pos = 0
+    this.excluding = false
     this.stack = []
   }
 
@@ -60,20 +63,20 @@ export class Matcher {
         return false
       }
     }
-    let current: any, next: any
+    let current: any
+    const next = () => {
+      return this.matchNext(node, path)
+    }
 
     if (isExpandOperator(node.after)) {
       current = () =>
         node.value === String(path[this.pos]).substring(0, node.value.length)
-      next = () => this.matchNext(node, path)
     } else {
       current = () => isEqual(String(node.value), String(path[this.pos]))
-      next = () => {
-        return this.matchNext(node, path)
-      }
     }
-
-    return current() && next()
+    return this.excluding
+      ? isValid(path[this.pos]) && !current()
+      : current() && next()
   }
 
   matchIgnoreExpression(path: Segments, node: IgnoreExpressionNode) {
@@ -114,43 +117,34 @@ export class Matcher {
 
   matchGroupExpression(path: Segments, node: GroupExpressionNode) {
     const current = this.pos
-    if (node.isExclude) {
-      return toArray(node.value).every(_node => {
-        this.pos = current
-        const unmatched = !this.matchAtom(path, _node)
-        return unmatched
-      })
-    } else {
-      return toArray(node.value).some(_node => {
-        this.pos = current
-        return this.matchAtom(path, _node)
-      })
-    }
+    this.excluding = !!node.isExclude
+    const result = toArray(node.value).some(_node => {
+      this.pos = current
+      return this.matchAtom(path, _node)
+    })
+    this.excluding = false
+    return result
   }
 
   matchRangeExpression(path: Segments, node: RangeExpressionNode) {
-    const parent = this.stack[this.stack.length - 1]
     if (node.start) {
       if (node.end) {
         return (
           path[this.pos] >= parseInt(node.start.value) &&
-          path[this.pos] <= parseInt(node.end.value) &&
-          this.matchNext(parent, path)
+          path[this.pos] <= parseInt(node.end.value)
         )
       } else {
         return (
-          path[this.pos] >= parseInt(node.start.value) &&
-          this.matchNext(parent, path)
+          path[this.pos] >= parseInt(node.start.value)
         )
       }
     } else {
       if (node.end) {
         return (
-          path[this.pos] <= parseInt(node.end.value) &&
-          this.matchNext(parent, path)
+          path[this.pos] <= parseInt(node.end.value)
         )
       } else {
-        return this.matchNext(parent, path)
+        return true
       }
     }
   }
