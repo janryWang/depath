@@ -118,7 +118,8 @@ export class Matcher {
   matchGroupExpression(path: Segments, node: GroupExpressionNode) {
     const current = this.pos
     this.excluding = !!node.isExclude
-    const result = toArray(node.value).some(_node => {
+    const method = this.excluding ? 'every' : 'some'
+    const result = toArray(node.value)[method](_node => {
       this.pos = current
       return this.matchAtom(path, _node)
     })

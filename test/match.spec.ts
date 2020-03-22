@@ -52,6 +52,8 @@ test('test matchGroup', () => {
   )
   const patttern2 = Path.parse('*(array)')
   expect(patttern2.matchAliasGroup(['array', 0], ['array', 0])).toEqual(false)
+  expect(Path.parse('*(!aaa,bbb)').match('ggg')).toBeTruthy()
+  expect(Path.parse('*(!aaa,bbb)').match('bbb')).toBeFalsy()
 })
 
 test('test zero', () => {
@@ -116,7 +118,8 @@ match({
   '*(aa~,bb~).*': [['aa12323', 'asdasd'], ['bb12222', 'asd']],
   '*(aa,bb,bb.aa)': [['bb', 'aa']],
   '*(!aa,bb,bb.aa)': [['xx'], ['yyy']],
-  '*(!aaa)': [['bbb']]
+  '*(!aaa)': [['bbb']],
+  '*(!aaa,bbb)': [['ccc'],['ggg']]
 })
 
 unmatch({
