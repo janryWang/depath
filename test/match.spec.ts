@@ -42,9 +42,7 @@ test('test matchGroup', () => {
   expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb', 'aa.bb')).toEqual(
     false
   )
-  expect(
-    new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb.cc', 'aa.bb.cc')
-  ).toEqual(false)
+  expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb.cc')).toEqual(false)
   expect(new Path('aa.*(!bb,oo)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
   expect(new Path('aa.*(!bb.*)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
   expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.cc', 'aa.cc')).toEqual(
@@ -52,8 +50,44 @@ test('test matchGroup', () => {
   )
   const patttern2 = Path.parse('*(array)')
   expect(patttern2.matchAliasGroup(['array', 0], ['array', 0])).toEqual(false)
-  expect(Path.parse('*(!aaa,bbb)').match('ggg')).toBeTruthy()
+})
+
+test('exclude match', () => {
+  //路径长度相等
+  expect(Path.parse('*(!aaa)').match('ggg')).toBeTruthy()
+  expect(Path.parse('*(!aaa)').match('aaa')).toBeFalsy()
+  expect(Path.parse('*(!aaa.bbb)').match('ggg.ddd')).toBeTruthy()
+  expect(Path.parse('*(!aaa.ccc)').match('aaa.ccc')).toBeFalsy()
+  //长路径匹配短路径
+  expect(Path.parse('*(!aaa.bbb)').match('ggg')).toBeTruthy()
+  expect(Path.parse('*(!aaa.bbb)').match('aaa')).toBeFalsy()
+  //短路径匹配长路径
+  expect(Path.parse('*(!aaa)').match('aaa.bbb')).toBeTruthy()
+  expect(Path.parse('*(!aaa)').match('aaa.ccc')).toBeTruthy()
+  expect(Path.parse('*(!aaa)').match('bbb.ccc')).toBeTruthy()
+
   expect(Path.parse('*(!aaa,bbb)').match('bbb')).toBeFalsy()
+  expect(Path.parse('*(!aaa.bbb)').match('aaa.ccc')).toBeTruthy()
+  expect(Path.parse('*(!basic.name,versionTag)').match('basic.id')).toBeTruthy()
+  expect(Path.parse('*(!basic.name,versionTag)').match('basic')).toBeFalsy()
+  expect(
+    Path.parse('*(!basic.name,versionTag)').match('isExecutable')
+  ).toBeTruthy()
+  expect(
+    Path.parse('*(!basic.name,versionTag)').match('versionTag')
+  ).toBeFalsy()
+  expect(
+    Path.parse('*(!basic.name,basic.name.*,versionTag)').match('basic.name')
+  ).toBeFalsy()
+  expect(
+    Path.parse('*(!basic.name,basic.name.*,versionTag)').match('basic.name.kkk')
+  ).toBeFalsy()
+  expect(Path.parse('aa.*(!bb)').match('kk.mm.aa.bb.cc')).toBeFalsy()
+  expect(Path.parse('aa.*(!bb)').match('aa')).toBeFalsy()
+  expect(Path.parse('aa.*(!bb.*)').match('aa')).toBeFalsy()
+  expect(Path.parse('aa.*(!bb,cc)').match('aa')).toBeFalsy()
+  expect(Path.parse('aa.*(!bb,cc)').match('aa.dd')).toBeTruthy()
+  expect(Path.parse('aa.*(!bb,cc)').match('aa.kk')).toBeTruthy()
 })
 
 test('test zero', () => {
@@ -119,7 +153,7 @@ match({
   '*(aa,bb,bb.aa)': [['bb', 'aa']],
   '*(!aa,bb,bb.aa)': [['xx'], ['yyy']],
   '*(!aaa)': [['bbb']],
-  '*(!aaa,bbb)': [['ccc'],['ggg']]
+  '*(!aaa,bbb)': [['ccc'], ['ggg']]
 })
 
 unmatch({
@@ -128,10 +162,8 @@ unmatch({
   'aa.bb.*': [['aa', 'bb']],
   'a.*.b': [['a', 'k', 'b', 'd']],
   '*(!aaa)': [['aaa']],
-  'dyanmic.*(!dynamic-1)': [
-    ['dyanmic', 'dynamic-1', 'ccc'],
-    ['dyanmic', 'dynamic-1']
-  ],
+  'dyanmic.*(!dynamic-1)': [['dyanmic', 'dynamic-1']],
+  'dyanmic.*(!dynamic-1.*)': [['dyanmic', 'dynamic-1', 'ccc']],
   a: [['c', 'b']],
   'aa~.ccc': [['a', 'ccc'], ['aa'], ['aaasdd']],
   bb: [['bb', 'cc']],

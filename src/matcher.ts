@@ -33,10 +33,13 @@ export class Matcher {
 
   private excluding: boolean
 
-  constructor(tree: Node) {
+  private record: any
+
+  constructor(tree: Node, record?: any) {
     this.tree = tree
     this.pos = 0
     this.excluding = false
+    this.record = record
     this.stack = []
   }
 
@@ -48,6 +51,18 @@ export class Matcher {
     return node.after
       ? this.matchAtom(path, node.after)
       : isValid(path[this.pos])
+  }
+
+  recordMatch(match: () => boolean) {
+    return () => {
+      const result = match()
+      if (result) {
+        if (this.record && this.record.score !== undefined) {
+          this.record.score++
+        }
+      }
+      return result
+    }
   }
 
   matchIdentifier(path: Segments, node: IdentifierNode) {
@@ -69,14 +84,35 @@ export class Matcher {
     }
 
     if (isExpandOperator(node.after)) {
-      current = () =>
-        node.value === String(path[this.pos]).substring(0, node.value.length)
+      current = this.recordMatch(
+        () =>
+          node.value === String(path[this.pos]).substring(0, node.value.length)
+      )
     } else {
-      current = () => isEqual(String(node.value), String(path[this.pos]))
+      current = this.recordMatch(() =>
+        isEqual(String(node.value), String(path[this.pos]))
+      )
     }
-    return this.excluding
-      ? isValid(path[this.pos]) && !current()
-      : current() && next()
+
+    if (this.excluding) {
+      if (node.after) {
+        if (this.pos < path.length) {
+          return current() && next()
+        } else {
+          if (node.after && isWildcardOperator(node.after.after)) {
+            return true
+          }
+          return false
+        }
+      } else {
+        if (this.pos >= path.length) {
+          return true
+        }
+        return current()
+      }
+    }
+
+    return current() && next()
   }
 
   matchIgnoreExpression(path: Segments, node: IgnoreExpressionNode) {
@@ -121,7 +157,9 @@ export class Matcher {
     const method = this.excluding ? 'every' : 'some'
     const result = toArray(node.value)[method](_node => {
       this.pos = current
-      return this.matchAtom(path, _node)
+      return this.excluding
+        ? !this.matchAtom(path, _node)
+        : this.matchAtom(path, _node)
     })
     this.excluding = false
     return result
@@ -135,15 +173,11 @@ export class Matcher {
           path[this.pos] <= parseInt(node.end.value)
         )
       } else {
-        return (
-          path[this.pos] >= parseInt(node.start.value)
-        )
+        return path[this.pos] >= parseInt(node.start.value)
       }
     } else {
       if (node.end) {
-        return (
-          path[this.pos] <= parseInt(node.end.value)
-        )
+        return path[this.pos] <= parseInt(node.end.value)
       } else {
         return true
       }
@@ -184,23 +218,29 @@ export class Matcher {
 
   match(path: Segments) {
     const matched = this.matchAtom(path, this.tree)
-    if (!this.tail) return false
+    if (!this.tail) return { matched: false }
     if (this.tail == this.tree && isWildcardOperator(this.tail)) {
-      return true
+      return { matched: true }
     }
 
-    return matched
+    return { matched, record: this.record }
   }
 
-  static matchSegments(source: Segments, target: Segments) {
+  static matchSegments(source: Segments, target: Segments, record?: any) {
     let pos = 0
     if (source.length !== target.length) return false
     const match = (pos: number) => {
-      const current = () => isEqual(source[pos], target[pos])
+      const current = () => {
+        const res = isEqual(source[pos], target[pos])
+        if (record && record.score !== undefined) {
+          record.score++
+        }
+        return res
+      }
       const next = () => (pos < source.length - 1 ? match(pos + 1) : true)
       return current() && next()
     }
 
-    return match(pos)
+    return { matched: match(pos), record }
   }
 }

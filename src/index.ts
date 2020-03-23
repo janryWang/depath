@@ -136,6 +136,7 @@ export class Path {
   public isMatchPattern: boolean
   public isWildMatchPattern: boolean
   public haveExcludePattern: boolean
+  public matchScore: number
   public tree: Node
   private matchCache: any
   private includesCache: any
@@ -381,8 +382,13 @@ export class Path {
   match = (pattern: Pattern): boolean => {
     const path = Path.getPath(pattern)
     const cache = this.matchCache.get(path.entire)
-    if (cache !== undefined) return cache
-    const cacheWith = (value: boolean): boolean => {
+    if (cache !== undefined) {
+      if (cache.record && cache.record.score !== undefined) {
+        this.matchScore = cache.record.score
+      }
+      return cache.matched
+    }
+    const cacheWith = (value: any) => {
       this.matchCache.set(path.entire, value)
       return value
     }
@@ -390,21 +396,49 @@ export class Path {
       if (this.isMatchPattern) {
         throw new Error(`${path.entire} cannot match ${this.entire}`)
       } else {
+        this.matchScore = 0
         return cacheWith(path.match(this.segments))
       }
     } else {
       if (this.isMatchPattern) {
-        return cacheWith(new Matcher(this.tree).match(path.segments))
+        const record = {
+          score: 0
+        }
+        const result = cacheWith(
+          new Matcher(this.tree, record).match(path.segments)
+        )
+        this.matchScore = record.score
+        return result.matched
       } else {
-        return cacheWith(Matcher.matchSegments(this.segments, path.segments))
+        const record = {
+          score: 0
+        }
+        const result = cacheWith(
+          Matcher.matchSegments(this.segments, path.segments, record)
+        )
+        this.matchScore = record.score
+        return result.matched
       }
     }
   }
 
   //别名组匹配
-  matchAliasGroup = (...patterns: Pattern[]) => {
-    if (patterns.length === 0) return false
-    return patterns.some(pattern => this.match(pattern))
+  matchAliasGroup = (name: Pattern, alias: Pattern) => {
+    const namePath = Path.parse(name)
+    const aliasPath = Path.parse(alias)
+    const nameMatched = this.match(namePath)
+    const nameMatchedScore = this.matchScore
+    const aliasMatched = this.match(aliasPath)
+    const aliasMatchedScore = this.matchScore
+    if (this.haveExcludePattern) {
+      if (nameMatchedScore >= aliasMatchedScore) {
+        return nameMatched
+      } else {
+        return aliasMatched
+      }
+    } else {
+      return nameMatched || aliasMatched
+    }
   }
 
   existIn = (source?: any, start: number | Path = 0) => {
