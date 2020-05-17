@@ -15,18 +15,19 @@ const pathCache = new LRUMap(1000)
 
 const isMatcher = Symbol('PATH_MATCHER')
 
+const isValid = (val: any) => val !== undefined && val !== null
+
 const getIn = (segments: Segments, source: any) => {
   for (let i = 0; i < segments.length; i++) {
     let index = segments[i]
     const rules = getDestructor(index as string)
     if (!rules) {
-      if (source === undefined || source === null) {
+      if (!isValid(source)) {
         if (i !== segments.length - 1) {
           return source
         }
         break
       }
-      if (source === undefined) return
       source = source[index]
     } else {
       source = getInByDestructor(source, rules, { setIn, getIn })
@@ -41,7 +42,7 @@ const setIn = (segments: Segments, source: any, value: any) => {
     const index = segments[i]
     const rules = getDestructor(index as string)
     if (!rules) {
-      if (source === undefined) return
+      if (!isValid(source)) return
       if (!isObj(source[index])) {
         if (source[index] === undefined && value === undefined) {
           return
@@ -79,7 +80,7 @@ const deleteIn = (segments: Segments, source: any) => {
         return
       }
 
-      if (source === undefined) return
+      if (!isValid(source)) return
 
       source = source[index]
 
@@ -112,7 +113,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
         return false
       }
 
-      if (source === undefined) return false
+      if (!isValid(source)) return false
 
       source = source[index]
 

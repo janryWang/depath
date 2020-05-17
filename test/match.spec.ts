@@ -33,7 +33,7 @@ const unmatch = obj => {
 
 test('test matchGroup', () => {
   const pattern = new Path('*(aa,bb,cc)')
-  expect(pattern.matchAliasGroup('aa', 'bb', 'dd')).toEqual(true)
+  expect(pattern.matchAliasGroup('aa', 'bb')).toEqual(true)
   const excludePattern = new Path('aa.bb.*(11,22,33).*(!aa,bb,cc)')
   expect(
     excludePattern.matchAliasGroup('aa.bb.11.mm', 'aa.cc.dd.bb.11.mm')
@@ -42,7 +42,7 @@ test('test matchGroup', () => {
   expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb', 'aa.bb')).toEqual(
     false
   )
-  expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb.cc')).toEqual(false)
+  expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.bb.cc','kk.mm.aa')).toEqual(false)
   expect(new Path('aa.*(!bb,oo)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
   expect(new Path('aa.*(!bb.*)').matchAliasGroup('kk.mm', 'aa')).toEqual(false)
   expect(new Path('aa.*(!bb)').matchAliasGroup('kk.mm.aa.cc', 'aa.cc')).toEqual(

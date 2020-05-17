@@ -18,6 +18,8 @@ type Mutatators = {
 
 const DestrcutorCache = new Map()
 
+const isValid = (val: any) => val !== undefined && val !== null
+
 export const getDestructor = (source: string) => {
   return DestrcutorCache.get(source)
 }
@@ -123,7 +125,7 @@ export const getInByDestructor = (
       response = []
     }
   }
-  source = source !== undefined ? source : {}
+  source = isValid(source) ? source : {}
   rules.forEach(({ key, path }) => {
     mutators.setIn(path, response, source[key])
   })
