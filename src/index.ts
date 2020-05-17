@@ -43,8 +43,8 @@ const setIn = (segments: Segments, source: any, value: any) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (!isValid(source)) return
-      if (!isObj(source[index])) {
-        if (source[index] === undefined && value === undefined) {
+      if (!isValid(source[index])) {
+        if (!isValid(source[index]) && !isValid(value)) {
           return
         }
         if (isNum(segments[i + 1])) {
@@ -71,7 +71,7 @@ const deleteIn = (segments: Segments, source: any) => {
     let index = segments[i]
     const rules = getDestructor(index as string)
     if (!rules) {
-      if (i === segments.length - 1) {
+      if (i === segments.length - 1 && isValid(source)) {
         if (isArr(source)) {
           source.splice(Number(index), 1)
         } else {
@@ -107,7 +107,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (i === segments.length - 1) {
-        if (index in source) {
+        if (source && index in source) {
           return true
         }
         return false

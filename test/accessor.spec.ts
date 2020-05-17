@@ -15,14 +15,14 @@ test('test getIn with destructor', () => {
 })
 
 test('test setIn auto create array', () => {
-  const value = {}
+  const value = { array: null }
   setIn(value, 'array[0].bb[2]', 'hello world')
   expect(value).toEqual({
     array: [
       {
-        bb: [undefined, undefined, 'hello world']
-      }
-    ]
+        bb: [undefined, undefined, 'hello world'],
+      },
+    ],
   })
 })
 
@@ -32,22 +32,22 @@ test('test setIn dose not affect other items', () => {
       {
         dd: [
           {
-            ee: '是'
-          }
+            ee: '是',
+          },
         ],
-        cc: '1111'
-      }
-    ]
+        cc: '1111',
+      },
+    ],
   }
 
   setIn(value, 'aa.1.dd.0.ee', '否')
   expect(value.aa[0]).toEqual({
     dd: [
       {
-        ee: '是'
-      }
+        ee: '是',
+      },
     ],
-    cc: '1111'
+    cc: '1111',
   })
 })
 
@@ -56,7 +56,7 @@ test('destruct getIn', () => {
   const value = { a: { b: { c: 2, d: 333 } } }
   expect(getIn({ a: { b: { kk: 2, mm: 333 } } }, 'a.b.{c:kk,d:mm}')).toEqual({
     c: 2,
-    d: 333
+    d: 333,
   })
 
   expect(
@@ -116,17 +116,17 @@ test('destruct setIn', () => {
     )
   ).toEqual({ aa: 123, bb: 444 })
   expect(setIn({}, 'aa.bb.ddd.[aa,bb]', [123, 444])).toEqual({
-    aa: { bb: { ddd: { aa: 123, bb: 444 } } }
+    aa: { bb: { ddd: { aa: 123, bb: 444 } } },
   })
 
   expect(setIn({}, 'aa.bb.ddd.[{cc:aa,bb}]', [{ cc: 123, bb: 444 }])).toEqual({
-    aa: { bb: { ddd: { aa: 123, bb: 444 } } }
+    aa: { bb: { ddd: { aa: 123, bb: 444 } } },
   })
 })
 
 test('setIn with a.b.c.{aaa,bbb}', () => {
   expect(Path.setIn({}, 'a.b.c.{aaa,bbb}', { aaa: 123, bbb: 321 })).toEqual({
-    a: { b: { c: { aaa: 123, bbb: 321 } } }
+    a: { b: { c: { aaa: 123, bbb: 321 } } },
   })
 })
 
@@ -140,7 +140,7 @@ test('setIn with a.b.c.{aaa,bbb} source has extra property', () => {
   expect(
     Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.{aaa,bbb}', {
       aaa: 123,
-      bbb: 321
+      bbb: 321,
     })
   ).toEqual({ a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } })
 })
@@ -158,7 +158,7 @@ test('setIn with a.b.c.{aaa:ooo,bbb}', () => {
   expect(
     Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.{aaa:ooo,bbb}', {
       aaa: 123,
-      bbb: 321
+      bbb: 321,
     })
   ).toEqual({ a: { b: { c: { ooo: 123, bbb: 321, kkk: 'ddd' } } } })
 })
@@ -174,7 +174,7 @@ test('getIn with a.b.c.{aaa:ooo,bbb}', () => {
 
 test('setIn with a.b.c.[aaa,bbb]', () => {
   expect(Path.setIn({}, 'a.b.c.[aaa,bbb]', [123, 321])).toEqual({
-    a: { b: { c: { aaa: 123, bbb: 321 } } }
+    a: { b: { c: { aaa: 123, bbb: 321 } } },
   })
 })
 
@@ -188,7 +188,7 @@ test('setIn with a.b.c.[aaa,bbb] source has extra property', () => {
   expect(
     Path.setIn({ a: { b: { c: { kkk: 'ddd' } } } }, 'a.b.c.[aaa,bbb]', [
       123,
-      321
+      321,
     ])
   ).toEqual({ a: { b: { c: { aaa: 123, bbb: 321, kkk: 'ddd' } } } })
 })
@@ -265,16 +265,16 @@ test('complex destructing', () => {
           bb: {
             cc: 123,
             dd: [333, 444],
-            ee: 'abcde'
-          }
-        }
+            ee: 'abcde',
+          },
+        },
       }
     )
   ).toEqual({
     destructor1: 123,
     destructor2: 333,
     destructor3: 444,
-    ee: 'abcde'
+    ee: 'abcde',
   })
   expect(
     Path.getIn(
@@ -282,7 +282,7 @@ test('complex destructing', () => {
         destructor1: 123,
         destructor2: 333,
         destructor3: 444,
-        ee: 'abcde'
+        ee: 'abcde',
       },
       '{aa:{bb:{cc:destructor1,dd:[destructor2,destructor3],ee}}}'
     )
@@ -291,8 +291,8 @@ test('complex destructing', () => {
       bb: {
         cc: 123,
         dd: [333, 444],
-        ee: 'abcde'
-      }
-    }
+        ee: 'abcde',
+      },
+    },
   })
 })
