@@ -5,7 +5,7 @@ import {
   getInByDestructor,
   setInByDestructor,
   deleteInByDestructor,
-  existInByDestructor
+  existInByDestructor,
 } from './destructor'
 import { Segments, Node, Pattern } from './types'
 export * from './types'
@@ -16,6 +16,14 @@ const pathCache = new LRUMap(1000)
 const isMatcher = Symbol('PATH_MATCHER')
 
 const isValid = (val: any) => val !== undefined && val !== null
+
+const arrayExist = (obj: any, key: string | number) => {
+  if (Array.isArray(obj)) {
+    const index = Number(key)
+    if (index < 0 || index > obj.length - 1) return false
+  }
+  return true
+}
 
 const getIn = (segments: Segments, source: any) => {
   for (let i = 0; i < segments.length; i++) {
@@ -28,7 +36,11 @@ const getIn = (segments: Segments, source: any) => {
         }
         break
       }
-      source = source[index]
+      if (arrayExist(source, index)) {
+        source = source[index]
+      } else {
+        return
+      }
     } else {
       source = getInByDestructor(source, rules, { setIn, getIn })
       break
@@ -57,8 +69,9 @@ const setIn = (segments: Segments, source: any, value: any) => {
       if (i === segments.length - 1) {
         source[index] = value
       }
-
-      source = source[index]
+      if (arrayExist(source, index)) {
+        source = source[index]
+      }
     } else {
       setInByDestructor(source, rules, value, { setIn, getIn })
       break
@@ -81,8 +94,11 @@ const deleteIn = (segments: Segments, source: any) => {
       }
 
       if (!isValid(source)) return
-
-      source = source[index]
+      if (arrayExist(source, index)) {
+        source = source[index]
+      } else {
+        return
+      }
 
       if (!isObj(source)) {
         return
@@ -91,7 +107,7 @@ const deleteIn = (segments: Segments, source: any) => {
       deleteInByDestructor(source, rules, {
         setIn,
         getIn,
-        deleteIn
+        deleteIn,
       })
       break
     }
@@ -114,8 +130,11 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
       }
 
       if (!isValid(source)) return false
-
-      source = source[index]
+      if (arrayExist(source, index)) {
+        source = source[index]
+      } else {
+        return false
+      }
 
       if (!isObj(source)) {
         return false
@@ -125,7 +144,7 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
         setIn,
         getIn,
         deleteIn,
-        existIn
+        existIn,
       })
     }
   }
@@ -149,7 +168,7 @@ export class Path {
       entire,
       isMatchPattern,
       isWildMatchPattern,
-      haveExcludePattern
+      haveExcludePattern,
     } = this.parse(input)
     this.entire = entire
     this.segments = segments
@@ -181,7 +200,7 @@ export class Path {
         isWildMatchPattern: pattern.isWildMatchPattern,
         isMatchPattern: pattern.isMatchPattern,
         haveExcludePattern: pattern.haveExcludePattern,
-        tree: pattern.tree
+        tree: pattern.tree,
       }
     } else if (isStr(pattern)) {
       if (!pattern)
@@ -190,7 +209,7 @@ export class Path {
           segments: [],
           isWildMatchPattern: false,
           haveExcludePattern: false,
-          isMatchPattern: false
+          isMatchPattern: false,
         }
       const parser = new Parser(pattern)
       const tree = parser.parse()
@@ -202,7 +221,7 @@ export class Path {
           tree,
           isWildMatchPattern: false,
           haveExcludePattern: false,
-          isMatchPattern: false
+          isMatchPattern: false,
         }
       } else {
         return {
@@ -211,7 +230,7 @@ export class Path {
           isWildMatchPattern: parser.isWildMatchPattern,
           haveExcludePattern: parser.haveExcludePattern,
           isMatchPattern: true,
-          tree
+          tree,
         }
       }
     } else if (isFn(pattern) && pattern[isMatcher]) {
@@ -224,7 +243,7 @@ export class Path {
         }, []),
         isWildMatchPattern: false,
         haveExcludePattern: false,
-        isMatchPattern: false
+        isMatchPattern: false,
       }
     } else {
       return {
@@ -232,7 +251,7 @@ export class Path {
         segments: pattern !== undefined ? [pattern] : [],
         isWildMatchPattern: false,
         haveExcludePattern: false,
-        isMatchPattern: false
+        isMatchPattern: false,
       }
     }
   }
@@ -257,7 +276,9 @@ export class Path {
       throw new Error(`${this.entire} cannot be concat`)
     }
     const path = new Path('')
-    path.segments = this.segments.concat(...args.map(s => this.parseString(s)))
+    path.segments = this.segments.concat(
+      ...args.map((s) => this.parseString(s))
+    )
     path.entire = path.segments.join('.')
     return path
   }
@@ -298,7 +319,7 @@ export class Path {
       throw new Error(`${this.entire} cannot be splice`)
     }
     if (deleteCount === 0) {
-      items = items.map(item => this.parseString(item))
+      items = items.map((item) => this.parseString(item))
     }
     this.segments.splice(start, deleteCount, ...items)
     this.entire = this.segments.join('.')
@@ -403,7 +424,7 @@ export class Path {
     } else {
       if (this.isMatchPattern) {
         const record = {
-          score: 0
+          score: 0,
         }
         const result = cacheWith(
           new Matcher(this.tree, record).match(path.segments)
@@ -412,7 +433,7 @@ export class Path {
         return result.matched
       } else {
         const record = {
-          score: 0
+          score: 0,
         }
         const result = cacheWith(
           Matcher.matchSegments(this.segments, path.segments, record)
@@ -462,7 +483,7 @@ export class Path {
 
   static match(pattern: Pattern) {
     const path = Path.getPath(pattern)
-    const matcher = target => {
+    const matcher = (target) => {
       return path.match(target)
     }
     matcher[isMatcher] = true
