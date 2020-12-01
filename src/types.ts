@@ -2,6 +2,7 @@ import { Path } from './index'
 interface INode {
   type?: string
   after?: Node
+  depth?: number
 }
 
 export type Node =

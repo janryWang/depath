@@ -16,7 +16,7 @@ import {
   ignoreTok,
   braceLTok,
   braceRTok,
-  bracketDLTok
+  bracketDLTok,
 } from './tokens'
 import { bracketDContext, Context } from './contexts'
 
@@ -64,18 +64,20 @@ const slice = (string: string, start: number, end: number) => {
 export class Tokenizer {
   public input: string
   public state: {
-    context: Context[],
-    type: Token,
-    pos: number,
+    context: Context[]
+    type: Token
+    pos: number
     value?: any
   }
+  public type_: Token
   constructor(input: string) {
     this.input = input
     this.state = {
       context: [],
       type: null,
-      pos: 0
+      pos: 0,
     }
+    this.type_ = null
   }
 
   curContext() {
@@ -83,8 +85,8 @@ export class Tokenizer {
   }
 
   includesContext(context: Context) {
-    for(let len = this.state.context.length - 1;len >=0;len--){
-      if(this.state.context[len] === context){
+    for (let len = this.state.context.length - 1; len >= 0; len--) {
+      if (this.state.context[len] === context) {
         return true
       }
     }
@@ -96,7 +98,7 @@ export class Tokenizer {
     return getError(
       `Unexpect token "${type.flag}" in ${this.state.pos} char.`,
       {
-        pos: this.state.pos
+        pos: this.state.pos,
       }
     )
   }
@@ -107,7 +109,7 @@ export class Tokenizer {
         throw getError(
           `Unexpect token "${next.flag}" token should not be behind "${type.flag}" token.(${this.state.pos}th char)`,
           {
-            pos: this.state.pos
+            pos: this.state.pos,
           }
         )
       }
@@ -120,7 +122,7 @@ export class Tokenizer {
         throw getError(
           `Unexpect token "${type.flag}" should not be behind "${prev.flag}"(${this.state.pos}th char).`,
           {
-            pos: this.state.pos
+            pos: this.state.pos,
           }
         )
       }
@@ -165,10 +167,10 @@ export class Tokenizer {
   }
 
   next() {
+    this.type_ = this.state.type
     if (this.input.length <= this.state.pos) {
       return this.finishToken(eofTok)
     }
-
     this.skipSpace()
     this.readToken(
       this.getCode(),

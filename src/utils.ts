@@ -8,12 +8,15 @@ export const isBool = isType<boolean>('Boolean')
 export const isNum = isType<number>('Number')
 export const isObj = (val: unknown): val is object => typeof val === 'object'
 export const isRegExp = isType<RegExp>('RegExp')
-
+export const isNumberLike = (t: any) => {
+  return isNum(t) || /^(\d+)(\.\d+)?$/.test(t)
+}
 const isArray = isArr
 const keyList = Object.keys
 const hasProp = Object.prototype.hasOwnProperty
 
-export const toArray = <T>(val: T | T[]) : T[]=>Array.isArray(val) ? val : val !== undefined ? [val] : []
+export const toArray = <T>(val: T | T[]): T[] =>
+  Array.isArray(val) ? val : val !== undefined ? [val] : []
 
 export const isEqual = (a: any, b: any) => {
   if (a === b) {
@@ -31,7 +34,7 @@ export const isEqual = (a: any, b: any) => {
       if (length !== b.length) {
         return false
       }
-      for (i = length; i-- !== 0;) {
+      for (i = length; i-- !== 0; ) {
         if (!isEqual(a[i], b[i])) {
           return false
         }
@@ -50,12 +53,12 @@ export const isEqual = (a: any, b: any) => {
       return false
     }
 
-    for (i = length; i-- !== 0;) {
+    for (i = length; i-- !== 0; ) {
       if (!hasProp.call(b, keys[i])) {
         return false
       }
     }
-    for (i = length; i-- !== 0;) {
+    for (i = length; i-- !== 0; ) {
       key = keys[i]
       if (!isEqual(a[key], b[key])) {
         return false

@@ -1,6 +1,6 @@
 import expect from 'expect'
 import { Parser } from '../src/parser'
-
+import { Path } from '../src/index'
 const parse = (string: string, json: any, index: number) => {
   test('test ' + string + ` : ${index}`, () => {
     const parser = new Parser(string)
@@ -8,7 +8,7 @@ const parse = (string: string, json: any, index: number) => {
   })
 }
 
-const batchTest = obj => {
+const batchTest = (obj) => {
   let i = 0
   for (let key in obj) {
     i++
@@ -16,10 +16,49 @@ const batchTest = obj => {
   }
 }
 
+test('relative', () => {
+  const parser = new Parser('..[ + 1 ].dd.bb', new Path(['aa', '1', 'cc']))
+  expect(parser.parse()).toEqual({
+    type: 'Identifier',
+    value: 'aa',
+    after: {
+      type: 'DotOperator',
+      after: {
+        type: 'DestructorExpression',
+        value: {
+          type: 'ArrayPattern',
+          elements: [
+            {
+              type: 'Identifier',
+              value: '+',
+              after: {
+                type: 'Identifier',
+                value: '1',
+              },
+            },
+          ],
+        },
+        source: '2',
+        after: {
+          type: 'Identifier',
+          value: 'dd',
+          after: {
+            type: 'DotOperator',
+            after: {
+              type: 'Identifier',
+              value: 'bb',
+            },
+          },
+        },
+      },
+    },
+  })
+  expect(parser.data.segments).toEqual(['aa', '2', 'dd', 'bb'])
+})
 
 batchTest({
   '*': {
-    type: 'WildcardOperator'
+    type: 'WildcardOperator',
   },
   'a.b.c': {
     type: 'Identifier',
@@ -33,11 +72,11 @@ batchTest({
           type: 'DotOperator',
           after: {
             type: 'Identifier',
-            value: 'c'
-          }
-        }
-      }
-    }
+            value: 'c',
+          },
+        },
+      },
+    },
   },
   'a.b.*': {
     type: 'Identifier',
@@ -50,11 +89,11 @@ batchTest({
         after: {
           type: 'DotOperator',
           after: {
-            type: 'WildcardOperator'
-          }
-        }
-      }
-    }
+            type: 'WildcardOperator',
+          },
+        },
+      },
+    },
   },
   'a.b.*(111,222,aaa)': {
     type: 'Identifier',
@@ -73,22 +112,22 @@ batchTest({
               value: [
                 {
                   type: 'Identifier',
-                  value: '111'
+                  value: '111',
                 },
                 {
                   type: 'Identifier',
-                  value: '222'
+                  value: '222',
                 },
                 {
                   type: 'Identifier',
-                  value: 'aaa'
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
+                  value: 'aaa',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
   'a.b.*(!111,222,aaa)': {
     type: 'Identifier',
@@ -108,22 +147,22 @@ batchTest({
               value: [
                 {
                   type: 'Identifier',
-                  value: '111'
+                  value: '111',
                 },
                 {
                   type: 'Identifier',
-                  value: '222'
+                  value: '222',
                 },
                 {
                   type: 'Identifier',
-                  value: 'aaa'
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
+                  value: 'aaa',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
   'a.b. * [  11 :  22  ]': {
     type: 'Identifier',
@@ -141,17 +180,17 @@ batchTest({
               type: 'RangeExpression',
               start: {
                 type: 'Identifier',
-                value: '11'
+                value: '11',
               },
               end: {
                 type: 'Identifier',
-                value: '22'
-              }
-            }
-          }
-        }
-      }
-    }
+                value: '22',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   'a.b.*([[123123!,()]],[[aaa]])': {
     type: 'Identifier',
@@ -170,18 +209,18 @@ batchTest({
               value: [
                 {
                   type: 'IgnoreExpression',
-                  value: '123123!,()'
+                  value: '123123!,()',
                 },
                 {
                   type: 'IgnoreExpression',
-                  value: 'aaa'
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
+                  value: 'aaa',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
   'a.b.*([[123123!,()]],aaa)': {
     type: 'Identifier',
@@ -200,18 +239,18 @@ batchTest({
               value: [
                 {
                   type: 'IgnoreExpression',
-                  value: '123123!,()'
+                  value: '123123!,()',
                 },
                 {
                   type: 'Identifier',
-                  value: 'aaa'
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
+                  value: 'aaa',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
   'a.b.*(![[123123!,()]],aaa)': {
     type: 'Identifier',
@@ -230,19 +269,19 @@ batchTest({
               value: [
                 {
                   type: 'IgnoreExpression',
-                  value: '123123!,()'
+                  value: '123123!,()',
                 },
                 {
                   type: 'Identifier',
-                  value: 'aaa'
-                }
+                  value: 'aaa',
+                },
               ],
-              isExclude: true
-            }
-          }
-        }
-      }
-    }
+              isExclude: true,
+            },
+          },
+        },
+      },
+    },
   },
   'a.b  . *   (![[123123!,()]],aaa,bbb)': {
     type: 'Identifier',
@@ -261,23 +300,23 @@ batchTest({
               value: [
                 {
                   type: 'IgnoreExpression',
-                  value: '123123!,()'
+                  value: '123123!,()',
                 },
                 {
                   type: 'Identifier',
-                  value: 'aaa'
+                  value: 'aaa',
                 },
                 {
                   type: 'Identifier',
-                  value: 'bbb'
-                }
+                  value: 'bbb',
+                },
               ],
-              isExclude: true
-            }
-          }
-        }
-      }
-    }
+              isExclude: true,
+            },
+          },
+        },
+      },
+    },
   },
   'a.b.[[123123!,()]]   ': {
     type: 'Identifier',
@@ -291,11 +330,11 @@ batchTest({
           type: 'DotOperator',
           after: {
             type: 'IgnoreExpression',
-            value: '123123!,()'
-          }
-        }
-      }
-    }
+            value: '123123!,()',
+          },
+        },
+      },
+    },
   },
   [`a .  
      b .  
@@ -318,13 +357,13 @@ batchTest({
               type: 'DotOperator',
               after: {
                 type: 'Identifier',
-                value: 'aaaa'
-              }
-            }
-          }
-        }
-      }
-    }
+                value: 'aaaa',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   'a.*(aaa.d.*(!sss),ddd,bbb).c.b': {
     type: 'Identifier',
@@ -354,24 +393,24 @@ batchTest({
                         value: [
                           {
                             type: 'Identifier',
-                            value: 'sss'
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              }
+                            value: 'sss',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
             },
             {
               type: 'Identifier',
-              value: 'ddd'
+              value: 'ddd',
             },
             {
               type: 'Identifier',
-              value: 'bbb'
-            }
-          ]
+              value: 'bbb',
+            },
+          ],
         },
         after: {
           type: 'DotOperator',
@@ -382,13 +421,13 @@ batchTest({
               type: 'DotOperator',
               after: {
                 type: 'Identifier',
-                value: 'b'
-              }
-            }
-          }
-        }
-      }
-    }
+                value: 'b',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   'aa.bb.cc.{aa,bb,cc:kk}': {
     type: 'Identifier',
@@ -412,26 +451,26 @@ batchTest({
                   properties: [
                     {
                       type: 'ObjectPatternProperty',
-                      key: { type: 'Identifier', value: 'aa' }
+                      key: { type: 'Identifier', value: 'aa' },
                     },
                     {
                       type: 'ObjectPatternProperty',
-                      key: { type: 'Identifier', value: 'bb' }
+                      key: { type: 'Identifier', value: 'bb' },
                     },
                     {
                       type: 'ObjectPatternProperty',
                       key: { type: 'Identifier', value: 'cc' },
-                      value: { type: 'Identifier', value: 'kk' }
-                    }
-                  ]
+                      value: { type: 'Identifier', value: 'kk' },
+                    },
+                  ],
                 },
-                source: '{aa,bb,cc:kk}'
-              }
-            }
-          }
-        }
-      }
-    }
+                source: '{aa,bb,cc:kk}',
+              },
+            },
+          },
+        },
+      },
+    },
   },
   'aa.bb.cc.[ [aa,bb,cc,[ [{aa:bb}] ]] ]': {
     type: 'Identifier',
@@ -458,15 +497,15 @@ batchTest({
                       elements: [
                         {
                           type: 'Identifier',
-                          value: 'aa'
+                          value: 'aa',
                         },
                         {
                           type: 'Identifier',
-                          value: 'bb'
+                          value: 'bb',
                         },
                         {
                           type: 'Identifier',
-                          value: 'cc'
+                          value: 'cc',
                         },
                         {
                           type: 'ArrayPattern',
@@ -481,29 +520,29 @@ batchTest({
                                       type: 'ObjectPatternProperty',
                                       key: {
                                         type: 'Identifier',
-                                        value: 'aa'
+                                        value: 'aa',
                                       },
                                       value: {
                                         type: 'Identifier',
-                                        value: 'bb'
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
+                                        value: 'bb',
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
                 },
-                source: '[[aa,bb,cc,[[{aa:bb}]]]]'
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                source: '[[aa,bb,cc,[[{aa:bb}]]]]',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 })

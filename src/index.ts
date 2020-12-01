@@ -150,6 +150,85 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
   }
 }
 
+const parse = (pattern: Pattern, base?: Pattern) => {
+  if (pattern instanceof Path) {
+    return {
+      entire: pattern.entire,
+      segments: pattern.segments.slice(),
+      isWildMatchPattern: pattern.isWildMatchPattern,
+      isMatchPattern: pattern.isMatchPattern,
+      haveExcludePattern: pattern.haveExcludePattern,
+      tree: pattern.tree,
+    }
+  } else if (isStr(pattern)) {
+    if (!pattern)
+      return {
+        entire: '',
+        segments: [],
+        isWildMatchPattern: false,
+        haveExcludePattern: false,
+        isMatchPattern: false,
+      }
+    const parser = new Parser(pattern, Path.parse(base))
+    const tree = parser.parse()
+    if (!parser.isMatchPattern) {
+      const segments = parser.data.segments
+      return {
+        entire: segments.join('.'),
+        segments,
+        tree,
+        isWildMatchPattern: false,
+        haveExcludePattern: false,
+        isMatchPattern: false,
+      }
+    } else {
+      return {
+        entire: pattern,
+        segments: [],
+        isWildMatchPattern: parser.isWildMatchPattern,
+        haveExcludePattern: parser.haveExcludePattern,
+        isMatchPattern: true,
+        tree,
+      }
+    }
+  } else if (isFn(pattern) && pattern[isMatcher]) {
+    return parse(pattern['path'])
+  } else if (isArr(pattern)) {
+    return {
+      entire: pattern.join('.'),
+      segments: pattern.reduce((buf, key) => {
+        return buf.concat(parseString(key))
+      }, []),
+      isWildMatchPattern: false,
+      haveExcludePattern: false,
+      isMatchPattern: false,
+    }
+  } else {
+    return {
+      entire: '',
+      segments: pattern !== undefined ? [pattern] : [],
+      isWildMatchPattern: false,
+      haveExcludePattern: false,
+      isMatchPattern: false,
+    }
+  }
+}
+
+const parseString = (source: any) => {
+  if (isStr(source)) {
+    source = source.replace(/\s*/g, '')
+    try {
+      const { segments, isMatchPattern } = parse(source)
+      return !isMatchPattern ? segments : source
+    } catch (e) {
+      return source
+    }
+  } else if (source instanceof Path) {
+    return source.segments
+  }
+  return source
+}
+
 export class Path {
   public entire: string
   public segments: Segments
@@ -161,7 +240,7 @@ export class Path {
   private matchCache: any
   private includesCache: any
 
-  constructor(input: Pattern) {
+  constructor(input: Pattern, base?: Pattern) {
     const {
       tree,
       segments,
@@ -169,7 +248,7 @@ export class Path {
       isMatchPattern,
       isWildMatchPattern,
       haveExcludePattern,
-    } = this.parse(input)
+    } = parse(input, base)
     this.entire = entire
     this.segments = segments
     this.isMatchPattern = isMatchPattern
@@ -185,90 +264,11 @@ export class Path {
   }
 
   toArray() {
-    return this.segments
+    return this.segments.slice()
   }
 
   get length() {
     return this.segments.length
-  }
-
-  private parse(pattern: Pattern) {
-    if (pattern instanceof Path) {
-      return {
-        entire: pattern.entire,
-        segments: pattern.segments.slice(),
-        isWildMatchPattern: pattern.isWildMatchPattern,
-        isMatchPattern: pattern.isMatchPattern,
-        haveExcludePattern: pattern.haveExcludePattern,
-        tree: pattern.tree,
-      }
-    } else if (isStr(pattern)) {
-      if (!pattern)
-        return {
-          entire: '',
-          segments: [],
-          isWildMatchPattern: false,
-          haveExcludePattern: false,
-          isMatchPattern: false,
-        }
-      const parser = new Parser(pattern)
-      const tree = parser.parse()
-      if (!parser.isMatchPattern) {
-        const segments = parser.data.segments
-        return {
-          entire: segments.join('.'),
-          segments,
-          tree,
-          isWildMatchPattern: false,
-          haveExcludePattern: false,
-          isMatchPattern: false,
-        }
-      } else {
-        return {
-          entire: pattern,
-          segments: [],
-          isWildMatchPattern: parser.isWildMatchPattern,
-          haveExcludePattern: parser.haveExcludePattern,
-          isMatchPattern: true,
-          tree,
-        }
-      }
-    } else if (isFn(pattern) && pattern[isMatcher]) {
-      return this.parse(pattern['path'])
-    } else if (isArr(pattern)) {
-      return {
-        entire: pattern.join('.'),
-        segments: pattern.reduce((buf, key) => {
-          return buf.concat(this.parseString(key))
-        }, []),
-        isWildMatchPattern: false,
-        haveExcludePattern: false,
-        isMatchPattern: false,
-      }
-    } else {
-      return {
-        entire: '',
-        segments: pattern !== undefined ? [pattern] : [],
-        isWildMatchPattern: false,
-        haveExcludePattern: false,
-        isMatchPattern: false,
-      }
-    }
-  }
-
-  private parseString(source: any) {
-    if (isStr(source)) {
-      source = source.replace(/\s*/g, '')
-      try {
-        const { segments, isMatchPattern } = this.parse(source)
-        return !isMatchPattern ? segments : source
-      } catch (e) {
-        return source
-      }
-    } else if (source instanceof Path) {
-      return source.segments
-    }
-    return source
   }
 
   concat = (...args: Pattern[]) => {
@@ -276,9 +276,7 @@ export class Path {
       throw new Error(`${this.entire} cannot be concat`)
     }
     const path = new Path('')
-    path.segments = this.segments.concat(
-      ...args.map((s) => this.parseString(s))
-    )
+    path.segments = this.segments.concat(...args.map((s) => parseString(s)))
     path.entire = path.segments.join('.')
     return path
   }
@@ -293,11 +291,17 @@ export class Path {
     return path
   }
 
-  push = (item: Pattern) => {
+  push = (...items: Pattern[]) => {
+    if (items.length > 1) {
+      items.forEach((item) => {
+        this.push(item)
+      })
+      return this
+    }
     if (this.isMatchPattern) {
       throw new Error(`${this.entire} cannot be push`)
     }
-    this.segments.push(this.parseString(item))
+    this.segments.push(parseString(items[0]))
     this.entire = this.segments.join('.')
     return this
   }
@@ -319,7 +323,7 @@ export class Path {
       throw new Error(`${this.entire} cannot be splice`)
     }
     if (deleteCount === 0) {
-      items = items.map((item) => this.parseString(item))
+      items = items.map((item) => parseString(item))
     }
     this.segments.splice(start, deleteCount, ...items)
     this.entire = this.segments.join('.')
@@ -350,18 +354,12 @@ export class Path {
     return this.segments.reduce(callback, initial)
   }
 
-  getNearestChildPathBy = (target?: Pattern) => {
-    const path = Path.parse(target)
-    if (path.length < this.length) return this
-    return this.concat(path.segments[this.length])
-  }
-
   parent = () => {
     return this.slice(0, this.length - 1)
   }
 
   includes = (pattern: Pattern) => {
-    const { entire, segments, isMatchPattern } = Path.getPath(pattern)
+    const { entire, segments, isMatchPattern } = Path.parse(pattern)
     const cache = this.includesCache.get(entire)
     if (cache !== undefined) return cache
     const cacheWith = (value: boolean): boolean => {
@@ -402,7 +400,7 @@ export class Path {
   }
 
   match = (pattern: Pattern): boolean => {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     const cache = this.matchCache.get(path.entire)
     if (cache !== undefined) {
       if (cache.record && cache.record.score !== undefined) {
@@ -482,7 +480,7 @@ export class Path {
   }
 
   static match(pattern: Pattern) {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     const matcher = (target) => {
       return path.match(target)
     }
@@ -496,14 +494,10 @@ export class Path {
     regexp: string | RegExp,
     callback: (...args: string[]) => T
   ): any {
-    return Path.getPath(pattern).transform(regexp, callback)
+    return Path.parse(pattern).transform(regexp, callback)
   }
 
-  static parse(path: Pattern = ''): Path {
-    return Path.getPath(path)
-  }
-
-  static getPath(path: Pattern = ''): Path {
+  static parse(path: Pattern = '', base?: Pattern): Path {
     if (path instanceof Path) {
       const found = pathCache.get(path.entire)
       if (found) {
@@ -513,14 +507,15 @@ export class Path {
         return path
       }
     } else if (path && path[isMatcher]) {
-      return Path.getPath(path['path'])
+      return Path.parse(path['path'])
     } else {
-      const key = path.toString()
+      const key_ = base ? Path.parse(base) : ''
+      const key = `${path}:${key_}`
       const found = pathCache.get(key)
       if (found) {
         return found
       } else {
-        path = new Path(path)
+        path = new Path(path, base)
         pathCache.set(key, path)
         return path
       }
@@ -528,22 +523,22 @@ export class Path {
   }
 
   static getIn = (source: any, pattern: Pattern) => {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     return path.getIn(source)
   }
 
   static setIn = (source: any, pattern: Pattern, value: any) => {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     return path.setIn(source, value)
   }
 
   static deleteIn = (source: any, pattern: Pattern) => {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     return path.deleteIn(source)
   }
 
   static existIn = (source: any, pattern: Pattern, start?: number | Path) => {
-    const path = Path.getPath(pattern)
+    const path = Path.parse(pattern)
     return path.existIn(source, start)
   }
 }

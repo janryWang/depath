@@ -15,7 +15,7 @@ import {
   parenRTok,
   commaTok,
   expandTok,
-  eofTok
+  eofTok,
 } from './tokens'
 import { bracketArrayContext, destructorContext } from './contexts'
 import {
@@ -31,26 +31,72 @@ import {
   ObjectPatternPropertyNode,
   ArrayPatternNode,
   Node,
-  Segments
+  Segments,
 } from './types'
 import { parseDestructorRules, setDestructor } from './destructor'
+import { isNumberLike } from './utils'
+import Path from './index'
+
+const createTreeBySegments = (segments: Segments = [], afterNode?: Node) => {
+  const segLen = segments.length
+  const build = (start = 0) => {
+    const after = start < segLen - 1 ? build(start + 1) : afterNode
+    const dot = after && {
+      type: 'DotOperator',
+      after,
+    }
+    return {
+      type: 'Identifier',
+      value: segments[start],
+      after: dot,
+    }
+  }
+  return build()
+}
+
+const calculate = (
+  a: string | number,
+  b: string | number,
+  operator: string
+) => {
+  if (isNumberLike(a) && isNumberLike(b)) {
+    if (operator === '+') return String(Number(a) + Number(b))
+    if (operator === '-') return String(Number(a) - Number(b))
+    if (operator === '*') return String(Number(a) * Number(b))
+    if (operator === '/') return String(Number(a) / Number(b))
+  } else {
+    if (operator === '+') return String(a) + String(b)
+    if (operator === '-') return 'NaN'
+    if (operator === '*') return 'NaN'
+    if (operator === '/') return 'NaN'
+  }
+}
 
 export class Parser extends Tokenizer {
   public isMatchPattern: boolean
 
   public isWildMatchPattern: boolean
 
-  public haveExcludePattern:boolean
+  public haveExcludePattern: boolean
+
+  public base: Path
+
+  public relative: string | number
 
   public data: {
     segments: Segments
     tree?: Node
   }
 
+  constructor(input: string, base?: Path) {
+    super(input)
+    this.base = base
+  }
+
   parse() {
     let node: Node
     this.data = {
-      segments: []
+      segments: [],
     }
     if (!this.eat(eofTok)) {
       this.next()
@@ -99,9 +145,10 @@ export class Parser extends Tokenizer {
   parseIdentifier() {
     const node: IdentifierNode = {
       type: 'Identifier',
-      value: this.state.value
+      value: this.state.value,
     }
-    const hasNotInDestructor = !this.includesContext(destructorContext) &&
+    const hasNotInDestructor =
+      !this.includesContext(destructorContext) &&
       !this.isMatchPattern &&
       !this.isWildMatchPattern
 
@@ -129,7 +176,7 @@ export class Parser extends Tokenizer {
       const value = this.state.value
       this.pushSegments(isNumberKey ? Number(value) : value)
       const after = this.parseAtom(this.state.type) as IdentifierNode
-      if(isNumberKey){
+      if (isNumberKey) {
         after.arrayIndex = true
       }
       this.append(node, after)
@@ -142,7 +189,7 @@ export class Parser extends Tokenizer {
 
   parseExpandOperator() {
     const node: ExpandOperatorNode = {
-      type: 'ExpandOperator'
+      type: 'ExpandOperator',
     }
 
     this.isMatchPattern = true
@@ -158,7 +205,7 @@ export class Parser extends Tokenizer {
 
   parseWildcardOperator(): WildcardOperatorNode {
     const node: WildcardOperatorNode = {
-      type: 'WildcardOperator'
+      type: 'WildcardOperator',
     }
 
     this.isMatchPattern = true
@@ -180,7 +227,7 @@ export class Parser extends Tokenizer {
 
   parseDestructorExpression(): DestructorExpressionNode {
     const node: DestructorExpressionNode = {
-      type: 'DestructorExpression'
+      type: 'DestructorExpression',
     }
     this.state.context.push(destructorContext)
     const startPos = this.state.pos - 1
@@ -191,17 +238,28 @@ export class Parser extends Tokenizer {
     const endPos = this.state.pos
     this.state.context.pop()
     this.next()
-    this.append(node, this.parseAtom(this.state.type))
-    node.source = this.input.substring(startPos, endPos).replace(/\s*/g, '')
+    node.source = this.input
+      .substring(startPos, endPos)
+      .replace(
+        /\[\s*([\+\-\*\/])?\s*([^,\]\s]*)\s*\]/,
+        (match, operator, target) => {
+          if (operator && this.relative)
+            return calculate(target || 1, this.relative, operator)
+          return match
+        }
+      )
+      .replace(/\s*\.\s*/g, '')
+      .replace(/\s*/g, '')
     setDestructor(node.source, parseDestructorRules(node))
     this.pushSegments(node.source)
+    this.append(node, this.parseAtom(this.state.type))
     return node
   }
 
   parseArrayPattern(): ArrayPatternNode {
     const node: ArrayPatternNode = {
       type: 'ArrayPattern',
-      elements: []
+      elements: [],
     }
     this.next()
     node.elements = this.parseArrayPatternElements()
@@ -224,7 +282,7 @@ export class Parser extends Tokenizer {
   parseObjectPattern(): ObjectPatternNode {
     const node: ObjectPatternNode = {
       type: 'ObjectPattern',
-      properties: []
+      properties: [],
     }
     this.next()
     node.properties = this.parseObjectProperties()
@@ -236,7 +294,7 @@ export class Parser extends Tokenizer {
     while (this.state.type !== braceRTok && this.state.type !== eofTok) {
       const node: ObjectPatternPropertyNode = {
         type: 'ObjectPatternProperty',
-        key: this.parseAtom(this.state.type) as IdentifierNode
+        key: this.parseAtom(this.state.type) as IdentifierNode,
       }
       nodes.push(node)
       if (this.state.type === colonTok) {
@@ -257,10 +315,26 @@ export class Parser extends Tokenizer {
 
   parseDotOperator(): Node {
     const node: DotOperatorNode = {
-      type: 'DotOperator'
+      type: 'DotOperator',
     }
 
-    this.next()
+    const prevToken = this.type_
+    if (!prevToken && this.base) {
+      if (this.base.isMatchPattern) {
+        throw new Error('Base path must be an absolute path.')
+      }
+      this.data.segments = this.base.toArray()
+      while (this.state.type === dotTok) {
+        this.relative = this.data.segments.pop()
+        this.next()
+      }
+      return createTreeBySegments(
+        this.data.segments.slice(),
+        this.parseAtom(this.state.type)
+      )
+    } else {
+      this.next()
+    }
 
     this.append(node, this.parseAtom(this.state.type))
 
@@ -274,7 +348,7 @@ export class Parser extends Tokenizer {
 
     const node: IgnoreExpressionNode = {
       type: 'IgnoreExpression',
-      value: value
+      value: value,
     }
 
     this.pushSegments(value)
@@ -291,7 +365,7 @@ export class Parser extends Tokenizer {
   parseGroupExpression(parent: Node) {
     const node: GroupExpressionNode = {
       type: 'GroupExpression',
-      value: []
+      value: [],
     }
 
     this.isMatchPattern = true
@@ -327,7 +401,7 @@ export class Parser extends Tokenizer {
 
   parseRangeExpression(parent: Node) {
     const node: RangeExpressionNode = {
-      type: 'RangeExpression'
+      type: 'RangeExpression',
     }
 
     this.next()
