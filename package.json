@@ -1,6 +1,6 @@
 {
   "name": "cool-path",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Path Matcher/Getter/Setter for Object/Array",
   "main": "lib/index.js",
   "scripts": {
