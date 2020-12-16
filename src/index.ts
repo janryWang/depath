@@ -55,8 +55,17 @@ const setIn = (segments: Segments, source: any, value: any) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (!isValid(source)) return
-      if (!arrayExist(source, index) || !isValid(source[index])) {
-        if (!isValid(source[index]) && !isValid(value)) {
+      if (!isValid(source[index])) {
+        if (!isValid(value)) {
+          return
+        }
+        if (isNum(segments[i + 1])) {
+          source[index] = []
+        } else {
+          source[index] = {}
+        }
+      } else if (!isValid(source[index])) {
+        if (!isValid(value)) {
           return
         }
         if (isNum(segments[i + 1])) {
