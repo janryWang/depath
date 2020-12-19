@@ -1,5 +1,5 @@
 import { Parser } from './parser'
-import { isStr, isArr, isFn, isEqual, isObj, isNum } from './utils'
+import { isStr, isArr, isFn, isEqual, isObj, isNum, isRegExp } from './utils'
 import {
   getDestructor,
   getInByDestructor,
@@ -164,6 +164,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
     return {
       entire: pattern.entire,
       segments: pattern.segments.slice(),
+      isRegExp: false,
       isWildMatchPattern: pattern.isWildMatchPattern,
       isMatchPattern: pattern.isMatchPattern,
       haveExcludePattern: pattern.haveExcludePattern,
@@ -174,6 +175,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
       return {
         entire: '',
         segments: [],
+        isRegExp: false,
         isWildMatchPattern: false,
         haveExcludePattern: false,
         isMatchPattern: false,
@@ -186,6 +188,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
         entire: segments.join('.'),
         segments,
         tree,
+        isRegExp: false,
         isWildMatchPattern: false,
         haveExcludePattern: false,
         isMatchPattern: false,
@@ -194,6 +197,7 @@ const parse = (pattern: Pattern, base?: Pattern) => {
       return {
         entire: pattern,
         segments: [],
+        isRegExp: false,
         isWildMatchPattern: parser.isWildMatchPattern,
         haveExcludePattern: parser.haveExcludePattern,
         isMatchPattern: true,
@@ -208,13 +212,24 @@ const parse = (pattern: Pattern, base?: Pattern) => {
       segments: pattern.reduce((buf, key) => {
         return buf.concat(parseString(key))
       }, []),
+      isRegExp: false,
       isWildMatchPattern: false,
       haveExcludePattern: false,
       isMatchPattern: false,
     }
+  } else if (isRegExp(pattern)) {
+    return {
+      entire: pattern,
+      segments: [],
+      isRegExp: true,
+      isWildMatchPattern: false,
+      haveExcludePattern: false,
+      isMatchPattern: true,
+    }
   } else {
     return {
       entire: '',
+      isRegExp: false,
       segments: pattern !== undefined ? [pattern] : [],
       isWildMatchPattern: false,
       haveExcludePattern: false,
@@ -239,10 +254,11 @@ const parseString = (source: any) => {
 }
 
 export class Path {
-  public entire: string
+  public entire: string | RegExp
   public segments: Segments
   public isMatchPattern: boolean
   public isWildMatchPattern: boolean
+  public isRegExp: boolean
   public haveExcludePattern: boolean
   public matchScore: number
   public tree: Node
@@ -254,6 +270,7 @@ export class Path {
       tree,
       segments,
       entire,
+      isRegExp,
       isMatchPattern,
       isWildMatchPattern,
       haveExcludePattern,
@@ -262,6 +279,7 @@ export class Path {
     this.segments = segments
     this.isMatchPattern = isMatchPattern
     this.isWildMatchPattern = isWildMatchPattern
+    this.isRegExp = isRegExp
     this.haveExcludePattern = haveExcludePattern
     this.tree = tree as Node
     this.matchCache = new LRUMap(200)
@@ -430,6 +448,9 @@ export class Path {
       }
     } else {
       if (this.isMatchPattern) {
+        if (this.isRegExp) {
+          return this['entire']?.['test']?.(path.entire)
+        }
         const record = {
           score: 0,
         }

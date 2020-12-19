@@ -84,7 +84,13 @@ export type MatcherFunction = ((path: Segments) => boolean) & {
   path: Path
 }
 
-export type Pattern = string | number | Path | Segments | MatcherFunction
+export type Pattern =
+  | string
+  | number
+  | Path
+  | Segments
+  | MatcherFunction
+  | RegExp
 
 export type DestrcutorRules = DestrcutorRule[]
 
