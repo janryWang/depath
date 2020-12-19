@@ -287,11 +287,11 @@ export class Path {
   }
 
   toString() {
-    return this.entire
+    return this.entire?.toString()
   }
 
   toArray() {
-    return this.segments.slice()
+    return this.segments?.slice()
   }
 
   get length() {
