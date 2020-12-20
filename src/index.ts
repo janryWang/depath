@@ -17,6 +17,9 @@ const isMatcher = Symbol('PATH_MATCHER')
 
 const isValid = (val: any) => val !== undefined && val !== null
 
+const isNumberIndex = (val: any) =>
+  isStr(val) ? /^\d+$/.test(val) : isNum(val)
+
 const arrayExist = (obj: any, key: string | number) => {
   if (Array.isArray(obj)) {
     const index = Number(key)
@@ -55,6 +58,9 @@ const setIn = (segments: Segments, source: any, value: any) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (!isValid(source)) return
+      if (isArr(source) && !isNumberIndex(index)) {
+        return
+      }
       if (!arrayExist(source, index)) {
         if (!isValid(value)) {
           return
@@ -74,7 +80,6 @@ const setIn = (segments: Segments, source: any, value: any) => {
           source[index] = {}
         }
       }
-
       if (i === segments.length - 1) {
         source[index] = value
       }

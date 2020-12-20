@@ -26,6 +26,12 @@ test('test setIn auto create array', () => {
   })
 })
 
+test('test setIn array properties', () => {
+  const value = { array: [] }
+  setIn(value, 'array.xxx', 'hello world')
+  expect(value).toEqual({ array: [] })
+})
+
 test('test setIn dose not affect other items', () => {
   const value = {
     aa: [
