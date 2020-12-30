@@ -514,6 +514,15 @@ export class Path {
     return source
   }
 
+  ensureIn = (source?: any, defaults?: any) => {
+    const results = this.getIn(source)
+    if (results === undefined) {
+      this.setIn(source, defaults)
+      return this.getIn(source)
+    }
+    return results
+  }
+
   static match(pattern: Pattern) {
     const path = Path.parse(pattern)
     const matcher = (target) => {
@@ -575,6 +584,11 @@ export class Path {
   static existIn = (source: any, pattern: Pattern, start?: number | Path) => {
     const path = Path.parse(pattern)
     return path.existIn(source, start)
+  }
+
+  static ensureIn = (source: any, pattern: Pattern, defaultValue?: any) => {
+    const path = Path.parse(pattern)
+    return path.ensureIn(source, defaultValue)
   }
 }
 
