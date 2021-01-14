@@ -74,10 +74,12 @@ const setIn = (segments: Segments, source: any, value: any) => {
         if (!isValid(value)) {
           return
         }
-        if (isNum(segments[i + 1])) {
-          source[index] = []
-        } else {
-          source[index] = {}
+        if (i < segments.length - 1) {
+          if (isNum(segments[i + 1])) {
+            source[index] = []
+          } else {
+            source[index] = {}
+          }
         }
       }
       if (i === segments.length - 1) {
