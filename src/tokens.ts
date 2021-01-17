@@ -68,7 +68,8 @@ export const dotTok = TokenType('.', {
       next === bracketDLTok ||
       next === starTok ||
       next === bracketLTok ||
-      next === braceLTok
+      next === braceLTok ||
+      next === eofTok
     )
   },
   expectPrev(prev) {

@@ -18,6 +18,12 @@ const batchTest = (obj) => {
 
 test('relative', () => {
   const parser = new Parser('..[ + 1 ].dd.bb', new Path(['aa', '1', 'cc']))
+  const parser2 = new Parser('.ee', new Path(['aa', '1', 'cc']))
+  const parser3 = new Parser('.', new Path(['aa', '1', 'cc']))
+  const parser4 = new Parser('..', new Path(['aa', '1', 'cc']))
+  parser2.parse()
+  parser3.parse()
+  parser4.parse()
   expect(parser.parse()).toEqual({
     type: 'Identifier',
     value: 'aa',
@@ -54,6 +60,9 @@ test('relative', () => {
     },
   })
   expect(parser.data.segments).toEqual(['aa', '2', 'dd', 'bb'])
+  expect(parser2.data.segments).toEqual(['aa', '1', 'ee'])
+  expect(parser3.data.segments).toEqual(['aa', '1'])
+  expect(parser4.data.segments).toEqual(['aa'])
 })
 
 batchTest({
