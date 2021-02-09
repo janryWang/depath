@@ -326,27 +326,14 @@ export class Path {
   }
 
   push = (...items: Pattern[]) => {
-    if (items.length > 1) {
-      items.forEach((item) => {
-        this.push(item)
-      })
-      return this
-    }
-    if (this.isMatchPattern || this.isRegExp) {
-      throw new Error(`${this.entire} cannot be push`)
-    }
-    this.segments.push(parseString(items[0]))
-    this.entire = this.segments.join('.')
-    return this
+    return this.concat(...items)
   }
 
   pop = () => {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be pop`)
     }
-    this.segments.pop()
-    this.entire = this.segments.join('.')
-    return this
+    return new Path(this.segments.slice(0, this.segments.length - 1))
   }
 
   splice = (
@@ -357,12 +344,10 @@ export class Path {
     if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be splice`)
     }
-    if (deleteCount === 0) {
-      items = items.map((item) => parseString(item))
-    }
-    this.segments.splice(start, deleteCount, ...items)
-    this.entire = this.segments.join('.')
-    return this
+    items = items.reduce((buf, item) => buf.concat(parseString(item)), [])
+    const segments_ = this.segments.slice()
+    segments_.splice(start, deleteCount, ...items)
+    return new Path(segments_)
   }
 
   forEach = (callback: (key: string | number) => any) => {
