@@ -306,7 +306,7 @@ export class Path {
   }
 
   concat = (...args: Pattern[]) => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be concat`)
     }
     const path = new Path('')
@@ -316,7 +316,7 @@ export class Path {
   }
 
   slice = (start?: number, end?: number) => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be slice`)
     }
     const path = new Path('')
@@ -332,7 +332,7 @@ export class Path {
       })
       return this
     }
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be push`)
     }
     this.segments.push(parseString(items[0]))
@@ -341,11 +341,12 @@ export class Path {
   }
 
   pop = () => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be pop`)
     }
     this.segments.pop()
     this.entire = this.segments.join('.')
+    return this
   }
 
   splice = (
@@ -353,7 +354,7 @@ export class Path {
     deleteCount?: number,
     ...items: Array<string | number>
   ) => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be splice`)
     }
     if (deleteCount === 0) {
@@ -365,14 +366,14 @@ export class Path {
   }
 
   forEach = (callback: (key: string | number) => any) => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be each`)
     }
     this.segments.forEach(callback)
   }
 
   map = (callback: (key: string | number) => any) => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be map`)
     }
     return this.segments.map(callback)
@@ -382,7 +383,7 @@ export class Path {
     callback: (buf: T, item: string | number, index: number) => T,
     initial: T
   ): T => {
-    if (this.isMatchPattern) {
+    if (this.isMatchPattern || this.isRegExp) {
       throw new Error(`${this.entire} cannot be reduce`)
     }
     return this.segments.reduce(callback, initial)
