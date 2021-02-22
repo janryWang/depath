@@ -40,7 +40,11 @@ const getIn = (segments: Segments, source: any) => {
         break
       }
       if (arrayExist(source, index)) {
-        source = source[index]
+        if (source instanceof Map) {
+          source = source.get(index)
+        } else {
+          source = source[index]
+        }
       } else {
         return
       }
@@ -66,9 +70,17 @@ const setIn = (segments: Segments, source: any, value: any) => {
           return
         }
         if (isNum(segments[i + 1])) {
-          source[index] = []
+          if (source instanceof Map) {
+            source.set(index, [])
+          } else {
+            source[index] = []
+          }
         } else {
-          source[index] = {}
+          if (source instanceof Map) {
+            source.set(index, {})
+          } else {
+            source[index] = {}
+          }
         }
       } else if (!isValid(source[index])) {
         if (!isValid(value)) {
@@ -76,17 +88,33 @@ const setIn = (segments: Segments, source: any, value: any) => {
         }
         if (i < segments.length - 1) {
           if (isNum(segments[i + 1])) {
-            source[index] = []
+            if (source instanceof Map) {
+              source.set(index, [])
+            } else {
+              source[index] = []
+            }
           } else {
-            source[index] = {}
+            if (source instanceof Map) {
+              source.set(index, {})
+            } else {
+              source[index] = {}
+            }
           }
         }
       }
       if (i === segments.length - 1) {
-        source[index] = value
+        if (source instanceof Map) {
+          source.set(index, value)
+        } else {
+          source[index] = value
+        }
       }
       if (arrayExist(source, index)) {
-        source = source[index]
+        if (source instanceof Map) {
+          source = source.get(index)
+        } else {
+          source = source[index]
+        }
       }
     } else {
       setInByDestructor(source, rules, value, { setIn, getIn })
@@ -104,14 +132,22 @@ const deleteIn = (segments: Segments, source: any) => {
         if (isArr(source)) {
           source.splice(Number(index), 1)
         } else {
-          delete source[index]
+          if (source instanceof Map) {
+            source.delete(index)
+          } else {
+            delete source[index]
+          }
         }
         return
       }
 
       if (!isValid(source)) return
       if (arrayExist(source, index)) {
-        source = source[index]
+        if (source instanceof Map) {
+          source = source.get(index)
+        } else {
+          source = source[index]
+        }
       } else {
         return
       }
@@ -139,6 +175,9 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (i === segments.length - 1) {
+        if (source instanceof Map) {
+          return source.has(index)
+        }
         if (source && index in source) {
           return true
         }
@@ -147,7 +186,11 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
 
       if (!isValid(source)) return false
       if (arrayExist(source, index)) {
-        source = source[index]
+        if (source instanceof Map) {
+          source = source.get(index)
+        } else {
+          source = source[index]
+        }
       } else {
         return false
       }

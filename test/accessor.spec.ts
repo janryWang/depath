@@ -26,6 +26,12 @@ test('test setIn auto create array', () => {
   })
 })
 
+test('map', () => {
+  const value = { map: new Map() }
+  setIn(value, 'map.aa.bb.cc', 123)
+  expect(getIn(value, 'map.aa.bb.cc')).toEqual(123)
+})
+
 test('test setIn array properties', () => {
   const value = { array: [] }
   setIn(value, 'array.xxx', 'hello world')
