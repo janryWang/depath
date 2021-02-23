@@ -24,6 +24,8 @@ test('test setIn auto create array', () => {
       },
     ],
   })
+  expect(getIn(undefined, 'aa.bb.cc')).toEqual(undefined)
+  setIn(undefined, 'aa.bb.cc', 123)
 })
 
 test('map', () => {

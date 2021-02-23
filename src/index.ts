@@ -24,15 +24,19 @@ import { Matcher } from './matcher'
 const REGISTRY: IRegistry = {
   accessors: {
     get(source: any, key: number | string | symbol) {
+      if (typeof source !== 'object') return source
       return Reflect.get(source, key)
     },
     set(source: any, key: number | string | symbol, value: any) {
+      if (typeof source !== 'object') return
       return Reflect.set(source, key, value)
     },
     has(source: any, key: number | string | symbol) {
+      if (typeof source !== 'object') return
       return Reflect.has(source, key)
     },
     delete(source: any, key: number | string | symbol) {
+      if (typeof source !== 'object') return
       return Reflect.deleteProperty(source, key)
     },
   },
