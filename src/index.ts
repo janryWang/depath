@@ -96,7 +96,13 @@ const setIn = (segments: Segments, source: any, value: any) => {
         if (!isValid(value)) {
           return
         }
-        REGISTRY.accessors.set(source, index, isNum(segments[i + 1]) ? [] : {})
+        if (i < segments.length - 1) {
+          REGISTRY.accessors.set(
+            source,
+            index,
+            isNum(segments[i + 1]) ? [] : {}
+          )
+        }
       } else if (!isValid(source[index])) {
         if (!isValid(value)) {
           return
