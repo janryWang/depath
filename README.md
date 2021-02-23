@@ -1,13 +1,13 @@
-# CoolPath
+# Depath
 
-> Path Matcher/Getter/Setter for Object/Array
+> Path utils for match/getter/setter
 
 
 
 ### Usage
 
 ```
-import { Path } from "cool-path"
+import { Path } from "depath"
 
 const path = new Path("a.b.*")
 
@@ -21,7 +21,7 @@ path.match(["a","b","c"]) // true
 ### Install
 
 ```
-npm install --save cool-path
+npm install --save depath
 ```
 
 ### API

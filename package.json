@@ -1,6 +1,6 @@
 {
-  "name": "cool-path",
-  "version": "1.1.1",
+  "name": "depath",
+  "version": "1.0.0",
   "description": "Path Matcher/Getter/Setter for Object/Array",
   "main": "lib/index.js",
   "scripts": {
@@ -11,14 +11,14 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/janryWang/cool-path.git"
+    "url": "git+https://github.com/janryWang/depath.git"
   },
   "author": "janryWang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/janryWang/cool-path/issues"
+    "url": "https://github.com/janryWang/depath/issues"
   },
-  "homepage": "https://github.com/janryWang/cool-path#readme",
+  "homepage": "https://github.com/janryWang/depath#readme",
   "devDependencies": {
     "@types/jest": "^24.0.18",
     "babel-jest": "^24.9.0",
