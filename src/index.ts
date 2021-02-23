@@ -1,5 +1,14 @@
 import { Parser } from './parser'
-import { isStr, isArr, isFn, isEqual, isObj, isNum, isRegExp } from './utils'
+import {
+  isStr,
+  isArr,
+  isFn,
+  isEqual,
+  isObj,
+  isNum,
+  isRegExp,
+  isPlainObj,
+} from './utils'
 import {
   getDestructor,
   getInByDestructor,
@@ -7,10 +16,28 @@ import {
   deleteInByDestructor,
   existInByDestructor,
 } from './destructor'
-import { Segments, Node, Pattern } from './types'
+import { Segments, Node, Pattern, IRegistry, IAccessors } from './types'
 export * from './types'
 import { LRUMap } from './lru'
 import { Matcher } from './matcher'
+
+const REGISTRY: IRegistry = {
+  accessors: {
+    get(source: any, key: number | string | symbol) {
+      return Reflect.get(source, key)
+    },
+    set(source: any, key: number | string | symbol, value: any) {
+      return Reflect.set(source, key, value)
+    },
+    has(source: any, key: number | string | symbol) {
+      return Reflect.has(source, key)
+    },
+    delete(source: any, key: number | string | symbol) {
+      return Reflect.deleteProperty(source, key)
+    },
+  },
+}
+
 const pathCache = new LRUMap(1000)
 
 const isMatcher = Symbol('PATH_MATCHER')
@@ -40,11 +67,7 @@ const getIn = (segments: Segments, source: any) => {
         break
       }
       if (arrayExist(source, index)) {
-        if (source instanceof Map) {
-          source = source.get(index)
-        } else {
-          source = source[index]
-        }
+        source = REGISTRY.accessors.get(source, index)
       } else {
         return
       }
@@ -69,52 +92,24 @@ const setIn = (segments: Segments, source: any, value: any) => {
         if (!isValid(value)) {
           return
         }
-        if (isNum(segments[i + 1])) {
-          if (source instanceof Map) {
-            source.set(index, [])
-          } else {
-            source[index] = []
-          }
-        } else {
-          if (source instanceof Map) {
-            source.set(index, {})
-          } else {
-            source[index] = {}
-          }
-        }
+        REGISTRY.accessors.set(source, index, isNum(segments[i + 1]) ? [] : {})
       } else if (!isValid(source[index])) {
         if (!isValid(value)) {
           return
         }
         if (i < segments.length - 1) {
-          if (isNum(segments[i + 1])) {
-            if (source instanceof Map) {
-              source.set(index, [])
-            } else {
-              source[index] = []
-            }
-          } else {
-            if (source instanceof Map) {
-              source.set(index, {})
-            } else {
-              source[index] = {}
-            }
-          }
+          REGISTRY.accessors.set(
+            source,
+            index,
+            isNum(segments[i + 1]) ? [] : {}
+          )
         }
       }
       if (i === segments.length - 1) {
-        if (source instanceof Map) {
-          source.set(index, value)
-        } else {
-          source[index] = value
-        }
+        REGISTRY.accessors.set(source, index, value)
       }
       if (arrayExist(source, index)) {
-        if (source instanceof Map) {
-          source = source.get(index)
-        } else {
-          source = source[index]
-        }
+        source = REGISTRY.accessors.get(source, index)
       }
     } else {
       setInByDestructor(source, rules, value, { setIn, getIn })
@@ -129,25 +124,13 @@ const deleteIn = (segments: Segments, source: any) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (i === segments.length - 1 && isValid(source)) {
-        if (isArr(source)) {
-          source.splice(Number(index), 1)
-        } else {
-          if (source instanceof Map) {
-            source.delete(index)
-          } else {
-            delete source[index]
-          }
-        }
+        REGISTRY.accessors.delete(source, index)
         return
       }
 
       if (!isValid(source)) return
       if (arrayExist(source, index)) {
-        if (source instanceof Map) {
-          source = source.get(index)
-        } else {
-          source = source[index]
-        }
+        source = REGISTRY.accessors.get(source, index)
       } else {
         return
       }
@@ -175,22 +158,12 @@ const existIn = (segments: Segments, source: any, start: number | Path) => {
     const rules = getDestructor(index as string)
     if (!rules) {
       if (i === segments.length - 1) {
-        if (source instanceof Map) {
-          return source.has(index)
-        }
-        if (source && index in source) {
-          return true
-        }
-        return false
+        return REGISTRY.accessors.has(source, index)
       }
 
       if (!isValid(source)) return false
       if (arrayExist(source, index)) {
-        if (source instanceof Map) {
-          source = source.get(index)
-        } else {
-          source = source[index]
-        }
+        source = REGISTRY.accessors.get(source, index)
       } else {
         return false
       }
@@ -620,6 +593,16 @@ export class Path {
   static ensureIn = (source: any, pattern: Pattern, defaultValue?: any) => {
     const path = Path.parse(pattern)
     return path.ensureIn(source, defaultValue)
+  }
+
+  static registerAccessors = (accessors: IAccessors) => {
+    if (isPlainObj(accessors)) {
+      for (let name in accessors) {
+        if (isFn(accessors[name])) {
+          REGISTRY.accessors[name] = accessors[name]
+        }
+      }
+    }
   }
 }
 

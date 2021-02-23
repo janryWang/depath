@@ -129,3 +129,16 @@ export const isObjectPatternProperty = isType<ObjectPatternPropertyNode>(
 )
 
 export const isArrayPattern = isType<ArrayPatternNode>('ArrayPattern')
+
+export type KeyType = string | number | symbol
+
+export type IAccessors = {
+  get?: (source: any, key: KeyType) => any
+  set?: (source: any, key: KeyType, value: any) => any
+  has?: (source: any, key: KeyType) => boolean
+  delete?: (source: any, key: KeyType) => any
+}
+
+export type IRegistry = {
+  accessors?: IAccessors
+}
