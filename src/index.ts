@@ -37,6 +37,10 @@ const REGISTRY: IRegistry = {
     },
     delete(source: any, key: number | string | symbol) {
       if (typeof source !== 'object') return
+      if (Array.isArray(source) && isNumberIndex(key)) {
+        source.splice(Number(key), 1)
+        return true
+      }
       return Reflect.deleteProperty(source, key)
     },
   },
