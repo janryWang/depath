@@ -21,9 +21,11 @@ test('relative', () => {
   const parser2 = new Parser('.ee', new Path(['aa', '1', 'cc']))
   const parser3 = new Parser('.', new Path(['aa', '1', 'cc']))
   const parser4 = new Parser('..', new Path(['aa', '1', 'cc']))
+  const parser5 = new Parser('.[].dd', new Path(['aa', '1']))
   parser2.parse()
   parser3.parse()
   parser4.parse()
+  parser5.parse()
   expect(parser.parse()).toEqual({
     type: 'Identifier',
     value: 'aa',
@@ -63,6 +65,7 @@ test('relative', () => {
   expect(parser2.data.segments).toEqual(['aa', '1', 'ee'])
   expect(parser3.data.segments).toEqual(['aa', '1'])
   expect(parser4.data.segments).toEqual(['aa'])
+  expect(parser5.data.segments).toEqual(['aa', '1', 'dd'])
 })
 
 batchTest({
