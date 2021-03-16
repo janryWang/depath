@@ -70,7 +70,7 @@ const calculate = (
     if (operator === '*') return 'NaN'
     if (operator === '/') return 'NaN'
   }
-  return String(Number(a))
+  return String(Number(b))
 }
 
 export class Parser extends Tokenizer {
@@ -244,7 +244,7 @@ export class Parser extends Tokenizer {
       .replace(
         /\[\s*([\+\-\*\/])?\s*([^,\]\s]*)\s*\]/,
         (match, operator, target) => {
-          if (this.relative)
+          if (this.relative !== undefined)
             return calculate(target || 1, this.relative, operator)
           return match
         }
