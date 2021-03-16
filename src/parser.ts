@@ -251,7 +251,10 @@ export class Parser extends Tokenizer {
       )
       .replace(/\s*\.\s*/g, '')
       .replace(/\s*/g, '')
-    setDestructor(node.source, parseDestructorRules(node))
+    if (this.relative === undefined) {
+      setDestructor(node.source, parseDestructorRules(node))
+    }
+    this.relative = undefined
     this.pushSegments(node.source)
     this.append(node, this.parseAtom(this.state.type))
     return node

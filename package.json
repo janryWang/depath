@@ -1,6 +1,6 @@
 {
   "name": "depath",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Path Matcher/Getter/Setter for Object/Array",
   "main": "lib/index.js",
   "scripts": {
